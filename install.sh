@@ -28,8 +28,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     cat <<EOF > "$DESKTOP_FILE"
 [Desktop Entry]
 Type=Application
-Name=X3D CCD Toggle Control
-GenericName=AMD X3D v-Cache Mode Switcher
+Name=X3D CCD Toggle
+GenericName=AMD 3D v-Cache Technology Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
 Exec=$BIN_PATH
 Icon=$ASSET_DIR/$ICON_NAME
