@@ -1,0 +1,47 @@
+#!/bin/bash
+# X3D-Control v1.5 - Autonomous Scheduler
+
+TARGET=$(ls /sys/devices/platform/AMDI*/amd_x3d_mode 2>/dev/null | head -n 1)
+STEAM_DATA="$HOME/.local/share/Steam/steamapps"
+
+check_gaming_intent() {
+    # 1. GameMode Signal
+    gamemoded -s | grep -q "active" && return 0
+
+    # 2. Steam/Proton (Conditional)
+    if [ -d "$STEAM_DATA" ]; then
+        pgrep -f "reaper|Proton|wine-preloader" > /dev/null && return 0
+    fi
+
+    # 3. XDG Category Sniff (Native/Lutris/Heroic)
+    TOP_PROC=$(ps -eo comm --sort=-%cpu | head -n 2 | tail -n 1)
+    if grep -rl "Categories=.*Game" /usr/share/applications/ | xargs grep -q "Exec=.*$TOP_PROC" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+check_compute_intent() {
+    # High Load + No Game = LLM/Frequency Bias
+    LOAD=$(awk '{print $1}' /proc/loadavg)
+    # Threshold for 9950X3D (32 threads)
+    (( $(echo "$LOAD > 8.0" | bc -l) )) && return 0
+    return 1
+}
+
+while true; do
+    if check_gaming_intent; then
+        NEW_MODE="cache"
+    elif check_compute_intent; then
+        NEW_MODE="frequency"
+    else
+        NEW_MODE="auto"
+    fi
+
+    CURRENT=$(cat "$TARGET" 2>/dev/null)
+    if [[ "$CURRENT" != "$NEW_MODE" ]]; then
+        # Silent write for daemon mode
+        pkexec sh -c "echo $NEW_MODE > $TARGET"
+    fi
+    sleep 3
+done
