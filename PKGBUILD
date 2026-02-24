@@ -1,6 +1,6 @@
 # Maintainer: Pyrotiger
 pkgname=amd-x3d-toggle
-pkgver=1.0.0
+pkgver=0.5.0-beta
 pkgrel=1
 pkgdesc="GUI utility to toggle CCD priority on AMD Ryzen 9 X3D CPUs (9950X3D)"
 arch=('x86_64')
