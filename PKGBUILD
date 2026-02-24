@@ -1,30 +1,41 @@
 # Maintainer: Pyrotiger
-pkgname=amd-x3d-toggle
+pkgname=x3d-toggle-git
 pkgver=0.5.0-beta
 pkgrel=1
-pkgdesc="GUI utility to toggle CCD priority on AMD Ryzen 9 X3D CPUs (9950X3D)"
-arch=('x86_64')
+pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
+arch=('any')
 url="https://github.com/pyrotiger/x3d-toggle"
-license=('GPL')
-depends=('bash' 'kdialog' 'polkit' 'libnotify')
-source=("x3d-control.sh"
-        "assets/ryzen.jpeg")
-sha256sums=('SKIP' 'SKIP')
+license=('GPL3')
+depends=('kdialog' 'polkit' 'libnotify')
+makedepends=('git')
+provides=("${pkgname%-git}")
+conflicts=("${pkgname%-git}")
+source=("git+https://github.com/pyrotiger/x3d-toggle.git")
+md5sums=('SKIP')
 
 package() {
-    # 1. Install Executable Binary
-    install -Dm755 "${srcdir}/x3d-control.sh" "${pkgdir}/usr/bin/x3d-control"
+    cd "$srcdir/${pkgname%-git}"
+    
+    # Define package deployment paths
+    _bindir="$pkgdir/usr/bin"
+    _sharedir="$pkgdir/usr/share/x3d-toggle"
+    _appdir="$pkgdir/usr/share/applications"
 
-    # 2. Install Assets to /usr/share
-    install -Dm644 "${srcdir}/assets/ryzen.jpeg" "${pkgdir}/usr/share/x3d-toggle/ryzen.jpeg"
+    # Create directory structures
+    install -dm755 "$_bindir" "$_sharedir" "$_appdir"
 
-    # 3. Create and Install Desktop Entry
-    mkdir -p "${pkgdir}/usr/share/applications/"
-    cat <<EOF > "${pkgdir}/usr/share/applications/x3d-control.desktop"
+    # Deploy primary executable
+    install -Dm755 x3d_control "$_bindir/x3d-control"
+    
+    # Deploy notification asset from the assets directory
+    install -Dm644 assets/ryzen.jpeg "$_sharedir/ryzen.jpeg"
+
+    # Generate the Desktop Entry automatically
+    cat <<EOF > "$_appdir/x3d-control.desktop"
 [Desktop Entry]
 Type=Application
 Name=X3D CCD Toggle Control
-GenericName=AMD X3D Mode Switcher
+GenericName=AMD 3D v-Cache Technology Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
 Exec=/usr/bin/x3d-control
 Icon=/usr/share/x3d-toggle/ryzen.jpeg
@@ -33,4 +44,5 @@ Categories=System;Settings;
 Keywords=amd;x3d;vcache;gaming;llm;
 X-KDE-Keywords=x3d,vcache,cpu,rabbit,cheetah,llm
 EOF
+    chmod 644 "$_appdir/x3d-control.desktop"
 }
