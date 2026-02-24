@@ -10,11 +10,12 @@ BIN_PATH="/usr/bin/x3d-control"
 ASSET_DIR="/usr/share/x3d-toggle"
 SCRIPT_NAME="x3d_control.sh"
 ICON_NAME="ryzen.jpeg"
+SOURCE_ICON_PATH="assets/$ICON_NAME"
 DESKTOP_FILE="/usr/share/applications/x3d-control.desktop"
 
 mkdir -p "$ASSET_DIR"
 cp "$SOURCE_DIR/$SCRIPT_NAME" "$BIN_PATH"
-cp "$SOURCE_DIR/$ICON_NAME" "$ASSET_DIR/"
+cp "$SOURCE_DIR/$SOURCE_ICON_PATH" "$ASSET_DIR/$ICON_NAME"
 
 chmod +x "$BIN_PATH"
 
@@ -28,7 +29,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 [Desktop Entry]
 Type=Application
 Name=X3D CCD Toggle Control
-GenericName=AMD X3D Mode Switcher
+GenericName=AMD X3D v-Cache Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
 Exec=$BIN_PATH
 Icon=$ASSET_DIR/$ICON_NAME
