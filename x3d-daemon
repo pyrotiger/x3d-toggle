@@ -1,5 +1,5 @@
 #!/bin/bash
-# X3D-Control v1.5 - Autonomous Scheduler
+# X3D-Control v0.5.1-beta - Autonomous Scheduler
 
 TARGET=$(ls /sys/devices/platform/AMDI*/amd_x3d_mode 2>/dev/null | head -n 1)
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"
