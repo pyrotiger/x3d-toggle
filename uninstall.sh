@@ -44,5 +44,6 @@ if [[ -n "$SUDO_USER" ]]; then
 fi
 
 echo "--------------------------------------------------"
-echo "Uninstallation complete. Live long and prosper."
+echo "Setup Decomissioned. Scotty, you're retired!      "
 echo "--------------------------------------------------"
+echo "     =/\=      Live Long and Prosper     =/\=     "
