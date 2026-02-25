@@ -20,10 +20,10 @@ CURRENT_MODE=$(cat "$TARGET" | tr -d '[:space:]')
 DAEMON_STATUS=$(systemctl --user is-active "$SERVICE_NAME" --quiet && echo "RUNNING" || echo "STOPPED")
 
 RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
-    "Hardware: <font color='#ff6d00'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#00ff00'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" \
+    "Hardware: <font color='#3daee9'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#1cdc9a'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" \
     "cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" $([[ "$CURRENT_MODE" =~ ^cache ]] && echo "on" || echo "off") \
     "frequency" "Cheetah Mode (LLM/Raw Compute - CCD1)" $([[ "$CURRENT_MODE" =~ ^frequency ]] && echo "on" || echo "off") \
-    "auto" "Default (Manual Kernel CPPC Control)" $([[ "$CURRENT_MODE" =~ ^auto ]] && echo "on" || echo "off") \
+    "auto" "Default Scheduler (Disable Automation)" $([[ "$CURRENT_MODE" =~ ^auto ]] && echo "on" || echo "off") \
     "restart_daemon" "Restart/Enable Automation Daemon" "off")
 
 [ -z "$RAW_CHOICE" ] && exit 0
