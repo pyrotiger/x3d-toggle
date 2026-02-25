@@ -1,9 +1,15 @@
 #!/bin/bash
-#X3D-Control v0.6.1_beta - x3d-control
+#X3D-Control v0.6.2_beta - x3d-control
 #Copyright (C) 2026 Pyrotiger
 
 TARGET=$(ls /sys/devices/platform/AMDI*/amd_x3d_mode 2>/dev/null | head -n 1)
 SERVICE_NAME="x3d-auto"
+
+if ! command -v kdialog &> /dev/null; then
+    echo "Error: kdialog is required but not installed."
+    notify-send "X3D Control Error" "kdialog dependency missing."
+    exit 1
+fi
 
 if [ -z "$TARGET" ] || [ ! -f "$TARGET" ]; then
     kdialog --error "AMD X3D vCache interface not found. Check UEFI/Kernel settings or insert an actual X3D with v-Cache technology."
@@ -13,7 +19,6 @@ fi
 CURRENT_MODE=$(cat "$TARGET" | tr -d '[:space:]')
 DAEMON_STATUS=$(systemctl --user is-active "$SERVICE_NAME" --quiet && echo "RUNNING" || echo "STOPPED")
 
-# UI Selection
 RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
     "Hardware: <font color='#ff6d00'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#00ff00'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" \
     "cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" $([[ "$CURRENT_MODE" =~ ^cache ]] && echo "on" || echo "off") \
@@ -38,11 +43,16 @@ case "$RAW_CHOICE" in
         ;;
 esac
 
-if pkexec /usr/libexec/x3d-apply "$MODE"; then
+pkexec /usr/libexec/x3d-apply "$MODE"
+EXIT_STATUS=$?
+
+if [ $EXIT_STATUS -eq 0 ]; then
     ICON_PATH="/usr/share/x3d-toggle/ryzen.jpeg"
     DISPLAY_ICON=$([ -f "$ICON_PATH" ] && echo "file://$ICON_PATH" || echo "cpu")
 
     notify-send -i "$DISPLAY_ICON" "AMD X3D VCACHE Technology: ${MODE^^}" "Hardware Mode Engaged."
+elif [ $EXIT_STATUS -eq 126 ] || [ $EXIT_STATUS -eq 127 ]; then
+     exit 0
 else
-    kdialog --error "Hardware write failed. Check permissions or kernel support."
+    kdialog --error "<font color='#ff6d00'>Hardware write failed. Check permissions or kernel support.</font>"
 fi

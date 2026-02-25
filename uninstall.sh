@@ -1,5 +1,5 @@
 #!/bin/bash
-#X3D-Control v0.6.1_beta - uninstall.sh
+#X3D-Control v0.6.2_beta - uninstall.sh
 #Copyright (C) 2026 Pyrotiger
 
 if [[ $EUID -ne 0 ]]; then

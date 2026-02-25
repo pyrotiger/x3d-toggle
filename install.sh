@@ -1,10 +1,31 @@
 #!/bin/bash
-#X3D-Control v0.6.1_beta - install.sh
+#X3D-Control v0.6.2_beta - install.sh
 #Copyright (C) 2026 Pyrotiger
 
 if [[ $EUID -ne 0 ]]; then
    echo "Error: This installer must be run with sudo."
    exit 1
+fi
+
+# Check for required dependencies
+REQUIRED_CMDS="bc kdialog"
+MISSING_DEPS=0
+
+for cmd in $REQUIRED_CMDS; do
+    if ! command -v $cmd &> /dev/null; then
+        echo "Error: Required command '$cmd' not found."
+        MISSING_DEPS=1
+    fi
+done
+
+if [ $MISSING_DEPS -eq 1 ]; then
+    echo "Please install missing dependencies and run the installer again."
+    exit 1
+fi
+
+if [ -z "$SUDO_USER" ]; then
+    echo "Error: This script must be run via sudo to correctly identify the user."
+    exit 1
 fi
 
 SOURCE_DIR=$(dirname "$(readlink -f "$0")")

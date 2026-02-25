@@ -1,9 +1,14 @@
 #!/bin/bash
-#X3D-Control v0.6.1_beta - Autonomous Daemon Scheduler
+#X3D-Control v0.6.2_beta - Autonomous Daemon Scheduler
 #Copyright (C) 2026 Pyrotiger
 
 TARGET=$(ls /sys/devices/platform/AMDI*/amd_x3d_mode 2>/dev/null | head -n 1)
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"
+
+# Cache game executables at startup to reduce I/O
+GAME_EXECS=$(grep -rl "Categories=.*Game" /usr/share/applications/ | xargs grep "Exec=" | sed 's/^.*Exec=\([^ ]*\).*$/\1/' | xargs -n 1 basename | sort -u | tr '\n' '|')
+# Remove trailing pipe
+GAME_EXECS=${GAME_EXECS%|}
 
 check_gaming_intent() {
     gamemoded -s | grep -q "active" && return 0
@@ -13,8 +18,8 @@ check_gaming_intent() {
     fi
 
     TOP_PROC=$(ps -eo comm --sort=-%cpu | head -n 2 | tail -n 1)
-    if grep -rl "Categories=.*Game" /usr/share/applications/ | xargs grep -q "Exec=.*$TOP_PROC" 2>/dev/null; then
-        return 0
+    if [[ -n "$GAME_EXECS" && "$GAME_EXECS" == *"$TOP_PROC"* ]]; then
+         return 0
     fi
     return 1
 }
@@ -31,12 +36,12 @@ while true; do
     elif check_compute_intent; then
         NEW_MODE="frequency"
     else
-        NEW_MODE="frequency"
+        NEW_MODE="auto"
     fi
 
     CURRENT=$(cat "$TARGET" 2>/dev/null)
     if [[ "$CURRENT" != "$NEW_MODE" ]]; then
-        pkexec /usr/libexec/x3d-apply "$NEW_MODE"
+        pkexec /usr/libexec/x3d-apply "$NEW_MODE" || notify-send "X3D Control Error" "<font color='#ff6d00'>Critical: Failed to switch to $NEW_MODE.</font>"
     fi
     sleep 3
 done

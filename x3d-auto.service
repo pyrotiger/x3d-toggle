@@ -1,3 +1,6 @@
+#X3D-Control v0.6.2_beta - x3d-auto.service
+#Copyright (C) 2026 Pyrotiger
+
 [Unit]
 Description=AMD X3D VCACHE Technology Autonomous Daemon Scheduler
 ConditionPathExists=/usr/bin/x3d-daemon

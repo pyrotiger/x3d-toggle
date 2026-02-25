@@ -1,9 +1,9 @@
 #Maintainer: Pyrotiger
-#X3D-Control v0.6.1_beta - PKGBUILD
+#X3D-Control v0.6.2_beta - PKGBUILD
 #Copyright (C) 2026 Pyrotiger
 
 pkgname=x3d-toggle-git
-pkgver=0.6.1_beta
+pkgver=0.6.2_beta
 pkgrel=1
 pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
 arch=('any')
