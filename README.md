@@ -13,7 +13,7 @@ Modern Linux kernels often struggle with the "Dual-CCD Paradox." On processors l
 
   * CCD0 (V-Cache): High-impact gaming performance. 🐰
 
-  * CCD1 (Frequency): High-clock compute performance. 🐯
+  * CCD1 (Frequency): High-clock compute performance. 🐆
 
   Current CPPC (Collaborative Processor Performance Control) drivers often fail to switch these states deterministically, leading to micro-stutters as threads "bounce" between cache and frequency pools.
 
@@ -23,7 +23,7 @@ Modern Linux kernels often struggle with the "Dual-CCD Paradox." On processors l
 
   * Hardware/Manual Modes - Instant, user-defined priority.
     * Rabbit Mode 🐰 (vCache / CCD0): Prioritizes the CCD equipped with 3D V-Cache. Optimized for gaming and latency-sensitive applications.
-    * Cheetah Mode 🐯 (Frequency / CCD1): Prioritizes the high-frequency CCD. Optimized for local LLM inference, compilation, and raw compute.
+    * Cheetah Mode 🐆 (Frequency / CCD1): Prioritizes the high-frequency CCD. Optimized for local LLM inference, compilation, and raw compute.
     * Default Scheduler: Defaults to the system driver for dynamic scheduling, conditional on kernel support. Default is CPPC bias scheduler. Disables the automation daemon.
     * Restart Daemon: Restarts the daemon and persists next boot
 
