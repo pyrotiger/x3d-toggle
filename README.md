@@ -11,9 +11,9 @@ This utility provides a graphical interface to the amd-x3d-vcache kernel driver.
 * The Problem: CPPC Latency & Asymmetry
 Modern Linux kernels often struggle with the "Dual-CCD Paradox." On processors like the 9950X3D, the scheduler must decide between:
 
-  * CCD0 (V-Cache): High-impact gaming performance.
+  * CCD0 (V-Cache): High-impact gaming performance. 🐰
 
-  * CCD1 (Frequency): High-clock compute performance.
+  * CCD1 (Frequency): High-clock compute performance. 🐯
 
   Current CPPC (Collaborative Processor Performance Control) drivers often fail to switch these states deterministically, leading to micro-stutters as threads "bounce" between cache and frequency pools.
 
@@ -22,8 +22,8 @@ Modern Linux kernels often struggle with the "Dual-CCD Paradox." On processors l
   * Automated Daemon: Real-time heuristics that detect "Gaming" vs "Compute" loads and shift the entire hardware topology to match the workload before the stutter occurs.
 
   * Hardware/Manual Modes - Instant, user-defined priority.
-    * Rabbit Mode (vCache / CCD0): Prioritizes the CCD equipped with 3D V-Cache. Optimized for gaming and latency-sensitive applications.
-    * Cheetah Mode (Frequency / CCD1): Prioritizes the high-frequency CCD. Optimized for local LLM inference, compilation, and raw compute.
+    * Rabbit Mode 🐰 (vCache / CCD0): Prioritizes the CCD equipped with 3D V-Cache. Optimized for gaming and latency-sensitive applications.
+    * Cheetah Mode 🐯 (Frequency / CCD1): Prioritizes the high-frequency CCD. Optimized for local LLM inference, compilation, and raw compute.
     * Default Scheduler: Defaults to the system driver for dynamic scheduling, conditional on kernel support. Default is CPPC bias scheduler. Disables the automation daemon.
     * Restart Daemon: Restarts the daemon and persists next boot
 
