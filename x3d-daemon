@@ -2,13 +2,8 @@
 #X3D-Control v0.6.2_beta - Autonomous Daemon Scheduler
 #Copyright (C) 2026 Pyrotiger
 
-TARGET=$(ls /sys/devices/platform/AMDI*/amd_x3d_mode 2>/dev/null | head -n 1)
+TARGET=$(find /sys/devices/platform -name amd_x3d_mode 2>/dev/null | head -n 1)
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"
-
-# Cache game executables at startup to reduce I/O
-GAME_EXECS=$(grep -rl "Categories=.*Game" /usr/share/applications/ | xargs grep "Exec=" | sed 's/^.*Exec=\([^ ]*\).*$/\1/' | xargs -n 1 basename | sort -u | tr '\n' '|')
-# Remove trailing pipe
-GAME_EXECS=${GAME_EXECS%|}
 
 # Load user configuration if available
 CONFIG_FILE="/etc/x3d-toggle.conf"
@@ -18,27 +13,47 @@ else
     # Defaults
     POLL_INTERVAL=3
     COMPUTE_LOAD_THRESHOLD=8.0
+    GAME_DETECTION_MODE=2
+fi
+
+# Cache game executables at startup to reduce I/O if needed
+GAME_EXECS=""
+if [[ "${GAME_DETECTION_MODE:-2}" == "2" ]]; then
+    # Use pipe delimiter for exact matching
+    GAME_EXECS="|"$(find /usr/share/applications -name "*.desktop" -print0 | xargs -0 grep -l "Categories=.*Game" | xargs -d '\n' grep "^Exec=" | sed 's/^Exec=\([^ ]*\).*$/\1/' | xargs -n 1 basename | sort -u | tr '\n' '|')
 fi
 
 check_gaming_intent() {
-    gamemoded -s | grep -q "active" && return 0
-
-    if [ -d "$STEAM_DATA" ]; then
-        pgrep -f "reaper|Proton|wine-preloader" > /dev/null && return 0
+    if command -v gamemoded &> /dev/null && gamemoded -s | grep -q "active"; then
+        return 0
     fi
 
-    TOP_PROC=$(ps -eo comm --sort=-%cpu | head -n 2 | tail -n 1)
-    if [[ -n "$GAME_EXECS" && "$GAME_EXECS" == *"$TOP_PROC"* ]]; then
-         return 0
+    if [ -d "$STEAM_DATA" ]; then
+        if pgrep -f "reaper|Proton|wine-preloader|steam" > /dev/null; then
+            return 0
+        fi
+    fi
+    
+    # Mode 2: Check process names from .desktop files
+    if [[ "${GAME_DETECTION_MODE:-2}" == "2" ]]; then
+        TOP_PROC=$(ps -eo comm --sort=-%cpu | head -n 2 | tail -n 1)
+        if [[ -n "$TOP_PROC" && "$GAME_EXECS" == *"|$TOP_PROC|"* ]]; then
+             return 0
+        fi
     fi
     return 1
 }
 
 check_compute_intent() {
     LOAD=$(awk '{print $1}' /proc/loadavg)
-    (( $(echo "$LOAD > $COMPUTE_LOAD_THRESHOLD" | bc -l) )) && return 0
+    if [ "$(echo "$LOAD > $COMPUTE_LOAD_THRESHOLD" | bc -l)" -eq 1 ]; then
+        return 0
+    fi
     return 1
 }
+
+LAST_ERROR_TIME=0
+ERROR_COOLDOWN=60
 
 while true; do
     if check_gaming_intent; then
@@ -51,7 +66,13 @@ while true; do
 
     CURRENT=$(cat "$TARGET" 2>/dev/null)
     if [[ "$CURRENT" != "$NEW_MODE" ]]; then
-        pkexec /usr/libexec/x3d-apply "$NEW_MODE" || notify-send "X3D Control Error" "<font color='#ff6d00'>Critical: Failed to switch to $NEW_MODE.</font>"
+        if ! pkexec /usr/libexec/x3d-apply "$NEW_MODE"; then
+            NOW=$(date +%s)
+            if (( NOW - LAST_ERROR_TIME > ERROR_COOLDOWN )); then
+                notify-send "X3D Control Error" "<font color='#ff6d00'>Critical: Failed to switch to $NEW_MODE.</font>"
+                LAST_ERROR_TIME=$NOW
+            fi
+        fi
     fi
     sleep $POLL_INTERVAL
 done

@@ -45,31 +45,28 @@ CONFIG_PATH="/etc/x3d-toggle.conf"
 
 mkdir -p "/usr/libexec"
 mkdir -p "$POLKIT_DIR"
-cp "$SOURCE_DIR/x3d-apply" "$HELPER_PATH"
-chmod +x "$HELPER_PATH"
-cp "$SOURCE_DIR/$POLKIT_POLICY" "$POLKIT_DIR/$POLKIT_POLICY"
-chmod 644 "$POLKIT_DIR/$POLKIT_POLICY"
+install -m 755 "$SOURCE_DIR/x3d-apply" "$HELPER_PATH"
+install -m 644 "$SOURCE_DIR/$POLKIT_POLICY" "$POLKIT_DIR/$POLKIT_POLICY"
 
 mkdir -p "$ASSET_DIR"
-cp "$SOURCE_DIR/$SCRIPT_NAME" "$BIN_PATH"
-cp "$SOURCE_DIR/$SOURCE_ICON_PATH" "$ASSET_DIR/$ICON_NAME"
-# Install default config if not present
-if [ ! -f "$CONFIG_PATH" ]; then
-    cp "$SOURCE_DIR/x3d-toggle.conf" "$CONFIG_PATH"
-    chmod 644 "$CONFIG_PATH"
+install -m 755 "$SOURCE_DIR/$SCRIPT_NAME" "$BIN_PATH"
+if [ -f "$SOURCE_DIR/$SOURCE_ICON_PATH" ]; then
+    install -m 644 "$SOURCE_DIR/$SOURCE_ICON_PATH" "$ASSET_DIR/$ICON_NAME"
 fi
 
-chmod +x "$BIN_PATH"
+# Install default config if not present
+if [ ! -f "$CONFIG_PATH" ]; then
+    install -m 644 "$SOURCE_DIR/x3d-toggle.conf" "$CONFIG_PATH"
+fi
 
 echo "X3D Toggle Control: System Installation"
 echo "-----------------"
 
 if [ -f "$SOURCE_DIR/$DAEMON_NAME" ] && [ -f "$SOURCE_DIR/x3d-auto.service" ]; then
-    cp "$SOURCE_DIR/$DAEMON_NAME" "$DAEMON_PATH"
-    chmod +x "$DAEMON_PATH"
+    install -m 755 "$SOURCE_DIR/$DAEMON_NAME" "$DAEMON_PATH"
 
     mkdir -p /usr/lib/systemd/user/
-    cp "$SOURCE_DIR/x3d-auto.service" "$SERVICE_PATH"
+    install -m 644 "$SOURCE_DIR/x3d-auto.service" "$SERVICE_PATH"
 else
     echo "[-] Error: Daemon source files missing. Make sure x3d-daemon and x3d-auto.service are in the folder."
 fi
