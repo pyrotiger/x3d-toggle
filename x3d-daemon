@@ -1,42 +1,61 @@
 #!/bin/bash
-#X3D-Control v0.6.2_beta - Autonomous Daemon Scheduler
+#X3D-Control v0.6.4_beta - Autonomous Daemon Scheduler
 #Copyright (C) 2026 Pyrotiger
 
 TARGET=$(find /sys/devices/platform -name amd_x3d_mode 2>/dev/null | head -n 1)
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"
 
-# Load user configuration if available
-CONFIG_FILE="/etc/x3d-toggle.conf"
+if [ -z "$TARGET" ] || [ ! -f "$TARGET" ]; then
+    echo "Error: AMD X3D hardware interface not found. Exiting daemon." >&2
+    echo "Check UEFI settings and kernel support for AMD X3D vCache." >&2
+    exit 1
+fi
+
+CONFIG_FILE="${X3D_CONFIG_FILE:-/etc/x3d-toggle.conf}"
 if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
+    if ! source "$CONFIG_FILE" 2>/dev/null; then
+        echo "Warning: Config file syntax error. Using defaults." >&2
+        POLL_INTERVAL=3
+        COMPUTE_LOAD_THRESHOLD=8.0
+        GAME_DETECTION_MODE=2
+    fi
 else
-    # Defaults
     POLL_INTERVAL=3
     COMPUTE_LOAD_THRESHOLD=8.0
     GAME_DETECTION_MODE=2
 fi
 
-# Cache game executables at startup to reduce I/O if needed
-GAME_EXECS=""
-if [[ "${GAME_DETECTION_MODE:-2}" == "2" ]]; then
-    # Use pipe delimiter for exact matching
-    GAME_EXECS="|"$(find /usr/share/applications -name "*.desktop" -print0 | xargs -0 grep -l "Categories=.*Game" | xargs -d '\n' grep "^Exec=" | sed 's/^Exec=\([^ ]*\).*$/\1/' | xargs -n 1 basename | sort -u | tr '\n' '|')
+if ! [[ $POLL_INTERVAL =~ ^[0-9]+$ ]] || [ "$POLL_INTERVAL" -lt 1 ]; then
+    echo "Warning: Invalid POLL_INTERVAL value. Resetting to default (3s)." >&2
+    POLL_INTERVAL=3
 fi
 
+GAME_EXECS=""
+CACHE_INTERVAL=60
+CACHE_COUNTER=0
+
+refresh_game_cache() {
+    if [[ "${GAME_DETECTION_MODE:-2}" == "2" ]]; then
+        GAME_EXECS="|"$(find /usr/share/applications -name "*.desktop" -print0 2>/dev/null | xargs -0 grep -l "Categories=.*Game" 2>/dev/null | xargs -d '\n' grep "^Exec=" 2>/dev/null | sed 's/^Exec=\([^ ]*\).*$/\1/' | xargs -n 1 basename 2>/dev/null | sort -u | tr '\n' '|')
+    fi
+}
+
+# Initial cache load
+refresh_game_cache
+
 check_gaming_intent() {
-    if command -v gamemoded &> /dev/null && gamemoded -s | grep -q "active"; then
+    if command -v gamemoded &> /dev/null && gamemoded -s 2>/dev/null | grep -q "active"; then
         return 0
     fi
 
     if [ -d "$STEAM_DATA" ]; then
-        if pgrep -f "reaper|Proton|wine-preloader|steam" > /dev/null; then
+        if pgrep -f "reaper|Proton|wine-preloader|steam" > /dev/null 2>&1; then
             return 0
         fi
     fi
     
-    # Mode 2: Check process names from .desktop files
     if [[ "${GAME_DETECTION_MODE:-2}" == "2" ]]; then
-        TOP_PROC=$(ps -eo comm --sort=-%cpu | head -n 2 | tail -n 1)
+        TOP_PROC=$(ps -eo comm --sort=-%cpu 2>/dev/null | head -n 2 | tail -n 1)
         if [[ -n "$TOP_PROC" && "$GAME_EXECS" == *"|$TOP_PROC|"* ]]; then
              return 0
         fi
@@ -56,6 +75,12 @@ LAST_ERROR_TIME=0
 ERROR_COOLDOWN=60
 
 while true; do
+    (( CACHE_COUNTER++ ))
+    if [ $CACHE_COUNTER -ge $CACHE_INTERVAL ]; then
+        refresh_game_cache
+        CACHE_COUNTER=0
+    fi
+
     if check_gaming_intent; then
         NEW_MODE="cache"
     elif check_compute_intent; then
@@ -64,15 +89,17 @@ while true; do
         NEW_MODE="auto"
     fi
 
-    CURRENT=$(cat "$TARGET" 2>/dev/null)
+    CURRENT=$(cat "$TARGET" 2>/dev/null | tr -d '[:space:]')
     if [[ "$CURRENT" != "$NEW_MODE" ]]; then
-        if ! pkexec /usr/libexec/x3d-apply "$NEW_MODE"; then
+        if ! pkexec /usr/libexec/x3d-apply "$NEW_MODE" 2>/dev/null; then
             NOW=$(date +%s)
             if (( NOW - LAST_ERROR_TIME > ERROR_COOLDOWN )); then
-                notify-send "X3D Control Error" "<font color='#ff6d00'>Critical: Failed to switch to $NEW_MODE.</font>"
+                if command -v notify-send &> /dev/null; then
+                    notify-send "X3D Control Error" "<font color='#ff6d00'>Critical: Failed to switch to $NEW_MODE.</font>" 2>/dev/null
+                fi
                 LAST_ERROR_TIME=$NOW
             fi
         fi
     fi
-    sleep $POLL_INTERVAL
+    sleep "$POLL_INTERVAL"
 done

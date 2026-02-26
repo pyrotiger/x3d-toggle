@@ -9,10 +9,16 @@
   <action id="org.x3dtoggle.apply">
     <description>Apply AMD X3D V-Cache Priority Mode</description>
     <message>Authentication is not required to change the X3D hardware state</message>
+    <!-- FIXED: Changed from unrestricted 'yes' to auth_admin_keep for security on multi-user systems -->
+    <!-- For single-user systems, you can revert to: -->
+    <!--   <allow_any>yes</allow_any> -->
+    <!--   <allow_inactive>yes</allow_inactive> -->
+    <!--   <allow_active>yes</allow_active> -->
+    <!-- For multi-user systems, use auth_admin_keep (requires sudo password once per session): -->
     <defaults>
-      <allow_any>yes</allow_any>
-      <allow_inactive>yes</allow_inactive>
-      <allow_active>yes</allow_active>
+      <allow_any>auth_admin_keep</allow_any>
+      <allow_inactive>auth_admin_keep</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/x3d-apply</annotate>
   </action>

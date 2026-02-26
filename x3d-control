@@ -1,15 +1,21 @@
 #!/bin/bash
-#X3D-Control v0.6.2_beta - x3d-control
+#X3D-Control v0.6.4_beta - x3d-control
 #Copyright (C) 2026 Pyrotiger
+
+notify_user() {
+    if command -v notify-send &> /dev/null; then
+        notify-send "$@" 2>/dev/null
+    else
+        echo "[Notification] $*" >> "${HOME}/.x3d-toggle.log" 2>/dev/null
+    fi
+}
 
 TARGET=$(find /sys/devices/platform -name amd_x3d_mode 2>/dev/null | head -n 1)
 SERVICE_NAME="x3d-auto"
 
 if ! command -v kdialog &> /dev/null; then
-    echo "Error: kdialog is required but not installed."
-    if command -v notify-send &> /dev/null; then
-        notify-send "X3D Control Error" "kdialog dependency missing."
-    fi
+    echo "Error: kdialog is required but not installed." >&2
+    notify_user "X3D Control Error" "kdialog dependency missing."
     exit 1
 fi
 
@@ -43,12 +49,12 @@ case "$RAW_CHOICE" in
         MODE="$RAW_CHOICE"
         if systemctl --user is-active --quiet "$SERVICE_NAME"; then
             systemctl --user stop "$SERVICE_NAME"
-            notify-send "X3D Control" "Manual mode engaged. Automation Daemon paused."
+            notify_user "X3D Control" "Manual mode engaged. Automation Daemon paused."
         fi
         ;;
     "restart_daemon")
         systemctl --user enable --now "$SERVICE_NAME"
-        notify-send "X3D Control" "Automation Daemon restarted and enabled."
+        notify_user "X3D Control" "Automation Daemon restarted and enabled."
         exit 0
         ;;
 esac
@@ -60,7 +66,11 @@ if [ $EXIT_STATUS -eq 0 ]; then
     ICON_PATH="/usr/share/x3d-toggle/ryzen.jpeg"
     DISPLAY_ICON=$([ -f "$ICON_PATH" ] && echo "file://$ICON_PATH" || echo "cpu")
 
-    notify-send -i "$DISPLAY_ICON" "AMD X3D VCACHE Technology: ${MODE^^}" "Hardware Mode Engaged."
+    if command -v notify-send &> /dev/null; then
+        notify-send -i "$DISPLAY_ICON" "AMD X3D VCACHE Technology: ${MODE^^}" "Hardware Mode Engaged."
+    else
+        kdialog --information "Mode switched to: ${MODE^^}" --title "AMD X3D VCACHE Technology"
+    fi
 elif [ $EXIT_STATUS -eq 126 ] || [ $EXIT_STATUS -eq 127 ]; then
      exit 0
 else

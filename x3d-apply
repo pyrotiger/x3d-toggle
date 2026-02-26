@@ -1,5 +1,5 @@
 #!/bin/bash
-#X3D-Control v0.6.2_beta - Secure Polkit Root Helper
+#X3D-Control v0.6.4_beta - Secure Polkit Root Helper
 #Copyright (C) 2026 Pyrotiger
 
 TARGET=$(find /sys/devices/platform -name amd_x3d_mode 2>/dev/null | head -n 1)

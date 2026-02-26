@@ -1,5 +1,5 @@
 #!/bin/bash
-#X3D-Control v0.6.2_beta - install.sh
+#X3D-Control v0.6.4_beta - install.sh
 #Copyright (C) 2026 Pyrotiger
 
 if [[ $EUID -ne 0 ]]; then
@@ -7,19 +7,26 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Check for required dependencies
-REQUIRED_CMDS="bc kdialog"
+REQUIRED_CMDS="bc kdialog notify-send pkexec ps pgrep awk cat tr find grep sed"
 MISSING_DEPS=0
 
 for cmd in $REQUIRED_CMDS; do
-    if ! command -v $cmd &> /dev/null; then
+    if ! command -v "$cmd" &> /dev/null; then
         echo "Error: Required command '$cmd' not found."
         MISSING_DEPS=1
     fi
 done
 
 if [ $MISSING_DEPS -eq 1 ]; then
+    echo ""
     echo "Please install missing dependencies and run the installer again."
+    echo ""
+    echo "On Arch/Garuda Linux:"
+    echo "  sudo pacman -S polkit kdialog libnotify bc procps-ng"
+    echo ""
+    echo "On Debian/Ubuntu:"
+    echo "  sudo apt-get install polkit kdebase-runtime libnotify-bin bc procps"
+    echo ""
     exit 1
 fi
 
@@ -80,9 +87,21 @@ read -p "Enable X3D Automation Daemon? (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     if [ -n "$SUDO_USER" ]; then
-        USER_UID=$(id -u "$SUDO_USER")
-        sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="/run/user/$USER_UID" systemctl --user enable --now x3d-auto
-        echo "[+] Automation daemon actively running for $SUDO_USER."
+        USER_UID=$(id -u "$SUDO_USER" 2>/dev/null)
+        if [ -z "$USER_UID" ]; then
+            echo "[!] Could not get user ID. Run manually: systemctl --user enable --now x3d-auto"
+        elif [ ! -d "/run/user/$USER_UID" ]; then
+            echo "[!] User session directory not found (/run/user/$USER_UID)."
+            echo "    This is normal on first boot. Run this command after login:"
+            echo "    systemctl --user enable --now x3d-auto"
+        else
+            sudo -u "$SUDO_USER" XDG_RUNTIME_DIR="/run/user/$USER_UID" systemctl --user enable --now x3d-auto 2>/dev/null
+            if [ $? -eq 0 ]; then
+                echo "[+] Automation daemon actively running for $SUDO_USER."
+            else
+                echo "[!] Failed to enable daemon. Try manually: systemctl --user enable --now x3d-auto"
+            fi
+        fi
     else
         echo "[!] Could not auto-start. Run manually: systemctl --user enable --now x3d-auto"
     fi
@@ -120,7 +139,7 @@ EOF
       if [ -d "$REAL_USER_HOME/Desktop" ]; then
             cp "$DESKTOP_FILE" "$REAL_USER_HOME/Desktop/x3d-control.desktop"
             chmod +x "$REAL_USER_HOME/Desktop/x3d-control.desktop"
-            chown $SUDO_USER:$SUDO_USER "$REAL_USER_HOME/Desktop/x3d-control.desktop"
+            chown "$SUDO_USER:$SUDO_USER" "$REAL_USER_HOME/Desktop/x3d-control.desktop"
             echo "Desktop shortcut linked for: $SUDO_USER"
         else
             echo "[-]Desktop directory not found. Skipping shortcut."

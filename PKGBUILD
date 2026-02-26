@@ -1,9 +1,9 @@
 #Maintainer: Pyrotiger
-#X3D-Control v0.6.2_beta - PKGBUILD
+#X3D-Control v0.6.4_beta - PKGBUILD
 #Copyright (C) 2026 Pyrotiger
 
 pkgname=x3d-toggle-git
-pkgver=0.6.2_beta
+pkgver=0.6.4_beta
 pkgrel=1
 pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
 arch=('any')
@@ -36,6 +36,7 @@ package() {
     mkdir -p "$_sharedir"
     mkdir -p "$_polkitdir"
     mkdir -p "$_appdir"
+    mkdir -p "$_servicedir"
     mkdir -p "$_confdir"
 
     install -m 755 "$srcdir/${pkgname%-git}/x3d-control" "$_bindir/x3d-control"
@@ -44,11 +45,12 @@ package() {
     install -m 644 "$srcdir/${pkgname%-git}/assets/ryzen.jpeg" "$_sharedir/ryzen.jpeg"
     install -m 644 "$srcdir/${pkgname%-git}/org.x3dtoggle.policy" "$_polkitdir/org.x3dtoggle.policy"
     install -m 644 "$srcdir/${pkgname%-git}/x3d-toggle.conf" "$_confdir/x3d-toggle.conf"
+    install -m 644 "$srcdir/${pkgname%-git}/x3d-auto.service" "$_servicedir/x3d-auto.service"
 
     cat <<EOF > "$_appdir/x3d-control.desktop"
 [Desktop Entry]
 Type=Application
-Name=X3D CCD Toggle Control
+Name=X3D CCD Toggle
 GenericName=AMD 3D v-Cache Technology Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
 Exec=/usr/bin/x3d-control
