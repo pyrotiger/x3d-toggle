@@ -41,6 +41,7 @@ DESKTOP_FILE="/usr/share/applications/x3d-control.desktop"
 HELPER_PATH="/usr/libexec/x3d-apply"
 POLKIT_DIR="/usr/share/polkit-1/actions"
 POLKIT_POLICY="org.x3dtoggle.policy"
+CONFIG_PATH="/etc/x3d-toggle.conf"
 
 mkdir -p "/usr/libexec"
 mkdir -p "$POLKIT_DIR"
@@ -52,6 +53,11 @@ chmod 644 "$POLKIT_DIR/$POLKIT_POLICY"
 mkdir -p "$ASSET_DIR"
 cp "$SOURCE_DIR/$SCRIPT_NAME" "$BIN_PATH"
 cp "$SOURCE_DIR/$SOURCE_ICON_PATH" "$ASSET_DIR/$ICON_NAME"
+# Install default config if not present
+if [ ! -f "$CONFIG_PATH" ]; then
+    cp "$SOURCE_DIR/x3d-toggle.conf" "$CONFIG_PATH"
+    chmod 644 "$CONFIG_PATH"
+fi
 
 chmod +x "$BIN_PATH"
 

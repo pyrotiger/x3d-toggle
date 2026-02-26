@@ -27,6 +27,7 @@ rm -f "/usr/bin/x3d-daemon"
 rm -f "/usr/lib/systemd/user/x3d-auto.service"
 rm -f "/usr/libexec/x3d-apply"
 rm -f "/usr/share/polkit-1/actions/org.x3dtoggle.policy"
+rm -f "/etc/x3d-toggle.conf"
 rm -rf "$ASSET_DIR"
 
 if [[ -f "$DESKTOP_FILE" ]]; then

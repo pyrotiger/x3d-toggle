@@ -10,6 +10,16 @@ GAME_EXECS=$(grep -rl "Categories=.*Game" /usr/share/applications/ | xargs grep 
 # Remove trailing pipe
 GAME_EXECS=${GAME_EXECS%|}
 
+# Load user configuration if available
+CONFIG_FILE="/etc/x3d-toggle.conf"
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+else
+    # Defaults
+    POLL_INTERVAL=3
+    COMPUTE_LOAD_THRESHOLD=8.0
+fi
+
 check_gaming_intent() {
     gamemoded -s | grep -q "active" && return 0
 
@@ -26,7 +36,7 @@ check_gaming_intent() {
 
 check_compute_intent() {
     LOAD=$(awk '{print $1}' /proc/loadavg)
-    (( $(echo "$LOAD > 8.0" | bc -l) )) && return 0
+    (( $(echo "$LOAD > $COMPUTE_LOAD_THRESHOLD" | bc -l) )) && return 0
     return 1
 }
 
@@ -43,5 +53,5 @@ while true; do
     if [[ "$CURRENT" != "$NEW_MODE" ]]; then
         pkexec /usr/libexec/x3d-apply "$NEW_MODE" || notify-send "X3D Control Error" "<font color='#ff6d00'>Critical: Failed to switch to $NEW_MODE.</font>"
     fi
-    sleep 3
+    sleep $POLL_INTERVAL
 done
