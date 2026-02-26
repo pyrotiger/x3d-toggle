@@ -73,14 +73,21 @@ sudo ./install.sh
   ```
 * Accepted Keywords for Launcher: `x3d` `vcache` `cpu` `rabbit` `cheetah` `llm` `encode` `streaming` `workload` `compute`
 * If you opted out of the automation daemon initalization during install, you can start the daemon by running this command in your terminal:
-```bash
-systemctl --user enable --now x3d-auto
-```
+  ```bash
+  systemctl --user enable --now x3d-auto
+  ```
 ### ⚙️  Customizations  ⚙️
 *  To change the notification icon, replace the existing asset:
    *  Path: /usr/share/x3d-toggle/ryzen.jpeg
    *  Requirement: Image must be named ryzen.jpeg and in jpeg format
-
+*  To fine-tune the daemon's behavior, edit the configuration file:
+   *  Path: /etc/x3d-toggle.conf (Requires sudo/root to edit)
+   *  **Poll Interval:** Adjust how frequently the daemon checks for state changes (Default: 3s).
+   *  **Compute Threshold:** Set the load average required to trigger Frequency/Cheetah mode (Default: 8.0).
+   *  **Note:** After editing, restart the daemon to apply changes:
+      ```bash
+      systemctl --user restart x3d-auto
+      ```
 ### 🚮  Uninstallation  🚮
 To uninstall all binaries and assets, run the following:
 
