@@ -33,13 +33,13 @@ pkgver() {
 }
 
 prepare() {
-    cat <<EOF > "x3d-control.desktop"
+    cat <<EOF > "x3d-toggle-gui.desktop"
 [Desktop Entry]
 Type=Application
 Name=X3D CCD Toggle
 GenericName=AMD 3D v-Cache Technology Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
-Exec=/usr/bin/x3d-control
+Exec=/usr/bin/x3d-toggle-gui
 Icon=/usr/share/x3d-toggle/ryzen.jpeg
 Terminal=false
 Categories=System;Settings;
@@ -57,12 +57,12 @@ package() {
     cd "$srcdir/${pkgname%-git}"
     
     install -Dm755 "x3d-toggle-c" "$pkgdir/usr/bin/x3d-toggle-c"
-    install -Dm755 "x3d-control" "$pkgdir/usr/bin/x3d-control"
+    install -Dm755 "x3d-toggle-gui" "$pkgdir/usr/bin/x3d-toggle-gui"
     install -Dm755 "x3d-daemon" "$pkgdir/usr/bin/x3d-daemon"
     install -Dm644 "assets/ryzen.jpeg" "$pkgdir/usr/share/x3d-toggle/ryzen.jpeg"
     install -Dm644 "org.x3dtoggle.policy" "$pkgdir/usr/share/polkit-1/actions/org.x3dtoggle.policy"
     install -Dm644 "x3d-toggle.conf" "$pkgdir/etc/x3d-toggle.conf"
     install -Dm644 "x3d-auto.service" "$pkgdir/usr/lib/systemd/user/x3d-auto.service"
     install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
-    install -Dm644 "$srcdir/x3d-control.desktop" "$pkgdir/usr/share/applications/x3d-control.desktop"
+    install -Dm644 "$srcdir/x3d-toggle-gui.desktop" "$pkgdir/usr/share/applications/x3d-toggle-gui.desktop"
 }

@@ -57,7 +57,7 @@ x3d-toggle-c get              # Check current mode
 ```
 
 #### GUI Control
-Run `x3d-control` to open the mode selection dialog.
+Run `x3d-toggle-gui` to open the mode selection dialog.
 
 #### Daemon (Automation)
 Enable the user service to automatically switch modes:

@@ -22,7 +22,7 @@ clean:
 install: $(TARGET)
 	install -d $(BINDIR)
 	install -m 755 $(TARGET) $(BINDIR)/$(TARGET)
-	install -m 755 x3d-control $(BINDIR)/x3d-control
+	install -m 755 x3d-toggle-gui $(BINDIR)/x3d-toggle-gui
 	install -m 755 x3d-daemon $(BINDIR)/x3d-daemon
 	
 	install -d $(CONFDIR)
@@ -45,7 +45,7 @@ install: $(TARGET)
 
 uninstall:
 	rm -f $(BINDIR)/$(TARGET)
-	rm -f $(BINDIR)/x3d-control
+	rm -f $(BINDIR)/x3d-toggle-gui
 	rm -f $(BINDIR)/x3d-daemon
 	rm -f $(CONFDIR)/x3d-toggle.conf
 	rm -rf $(SHAREDIR)

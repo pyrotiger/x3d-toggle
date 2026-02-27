@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+#X3D-Toggle v1.0.0 - x3d-toggle-gui
+#Copyright (C) 2026 Pyrotiger
+
+notify_user() {
+    if command -v notify-send &> /dev/null; then
+        notify-send "$@" 2>/dev/null
+    else
+        echo "[Notification] $*" >> "${HOME}/.x3d-toggle.log" 2>/dev/null
+    fi
+}
+
+SERVICE_NAME="x3d-auto"
+
+if ! command -v kdialog &> /dev/null; then
+    echo "Error: kdialog is required but not installed." >&2
+    notify_user "X3D Toggle Error" "kdialog dependency missing."
+    exit 1
+fi
+
+if ! x3d-toggle-c get &>/dev/null; then
+    kdialog --error "AMD X3D vCache interface not found. Check UEFI/Kernel settings or ensure you have a compatible X3D CPU."
+    exit 1
+fi
+
+CURRENT_MODE=$(x3d-toggle-c get 2>/dev/null)
+if [ -z "$CURRENT_MODE" ]; then
+    CURRENT_MODE="unknown"
+fi
+
+if systemctl --user is-active --quiet "$SERVICE_NAME"; then
+    DAEMON_STATUS="RUNNING"
+else
+    DAEMON_STATUS="STOPPED"
+fi
+
+RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
+    "Hardware: <font color='#3daee9'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#1cdc9a'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" 0 0 0 \
+    "cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" $([[ "$CURRENT_MODE" == "cache" ]] && echo "on" || echo "off") \
+    "frequency" "Cheetah Mode (LLM/Raw Compute - CCD1)" $([[ "$CURRENT_MODE" == "frequency" ]] && echo "on" || echo "off") \
+    "auto" "Default Scheduler (Disable Automation)" $([[ "$CURRENT_MODE" == "auto" ]] && echo "on" || echo "off") \
+    "restart_daemon" "Restart/Enable Automation Daemon" "off")
+
+[ -z "$RAW_CHOICE" ] && exit 0
+
+case "$RAW_CHOICE" in
+    "cache"|"frequency"|"auto")
+        MODE="$RAW_CHOICE"
+        if systemctl --user is-active --quiet "$SERVICE_NAME"; then
+            systemctl --user stop "$SERVICE_NAME"
+            notify_user "X3D Toggle" "Manual mode engaged. Automation Daemon paused."
+        fi
+        ;;
+    "restart_daemon")
+        systemctl --user enable --now "$SERVICE_NAME"
+        notify_user "X3D Toggle" "Automation Daemon restarted and enabled."
+        exit 0
+        ;;
+esac
+
+pkexec x3d-toggle-c "$MODE"
+EXIT_STATUS=$?
+
+if [ $EXIT_STATUS -eq 0 ]; then
+    ICON_PATH="/usr/share/x3d-toggle/ryzen.jpeg"
+    DISPLAY_ICON=$([ -f "$ICON_PATH" ] && echo "file://$ICON_PATH" || echo "cpu")
+
+    if command -v notify-send &> /dev/null; then
+        notify-send -i "$DISPLAY_ICON" "AMD X3D VCACHE Technology: ${MODE^^}" "Hardware Mode Engaged."
+    else
+        kdialog --information "Mode switched to: ${MODE^^}" --title "AMD X3D VCACHE Technology"
+    fi
+elif [ $EXIT_STATUS -eq 126 ] || [ $EXIT_STATUS -eq 127 ]; then
+     exit 0
+else
+    kdialog --error "<font color='#ff6d00'>Hardware write failed. Check permissions or kernel support.</font>"
+fi
