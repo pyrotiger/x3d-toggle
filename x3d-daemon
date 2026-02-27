@@ -2,10 +2,10 @@
 #X3D-Control v0.6.4_beta - Autonomous Daemon Scheduler
 #Copyright (C) 2026 Pyrotiger
 
-TARGET=$(find /sys/devices/platform -name amd_x3d_mode 2>/dev/null | head -n 1)
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"
 
-if [ -z "$TARGET" ] || [ ! -f "$TARGET" ]; then
+# Check if we can get the mode (implicitly checks hardware availability)
+if ! x3d-toggle-c get &>/dev/null; then
     echo "Error: AMD X3D hardware interface not found. Exiting daemon." >&2
     echo "Check UEFI settings and kernel support for AMD X3D vCache." >&2
     exit 1
@@ -63,7 +63,15 @@ check_gaming_intent() {
 }
 
 check_compute_intent() {
-    if awk -v threshold="$COMPUTE_LOAD_THRESHOLD" '{ exit !($1 > threshold) }' /proc/loadavg; then
+    # Default to 50% threshold if not set or if set to old float value
+    local threshold="${COMPUTE_LOAD_THRESHOLD:-50}"
+    # If threshold contains a dot (e.g. 8.0), convert/default to integer percent
+    if [[ "$threshold" == *"."* ]]; then
+       threshold=50
+    fi
+    
+    # Use C binary to check load (returns 0 on high load, 1 on low load)
+    if x3d-toggle-c check-load "$threshold"; then
         return 0
     fi
     return 1
@@ -87,9 +95,9 @@ while true; do
         NEW_MODE="auto"
     fi
 
-    CURRENT=$(cat "$TARGET" 2>/dev/null | tr -d '[:space:]')
+    CURRENT=$(x3d-toggle-c get 2>/dev/null)
     if [[ "$CURRENT" != "$NEW_MODE" ]]; then
-        if ! pkexec /usr/libexec/x3d-apply "$NEW_MODE" 2>/dev/null; then
+        if ! pkexec x3d-toggle-c "$NEW_MODE" 2>/dev/null; then
             NOW=$(date +%s)
             if (( NOW - LAST_ERROR_TIME > ERROR_COOLDOWN )); then
                 if command -v notify-send &> /dev/null; then

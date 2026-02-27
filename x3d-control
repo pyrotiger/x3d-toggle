@@ -10,7 +10,6 @@ notify_user() {
     fi
 }
 
-TARGET=$(find /sys/devices/platform -name amd_x3d_mode 2>/dev/null | head -n 1)
 SERVICE_NAME="x3d-auto"
 
 if ! command -v kdialog &> /dev/null; then
@@ -19,12 +18,12 @@ if ! command -v kdialog &> /dev/null; then
     exit 1
 fi
 
-if [ -z "$TARGET" ] || [ ! -f "$TARGET" ]; then
+if ! x3d-toggle-c get &>/dev/null; then
     kdialog --error "AMD X3D vCache interface not found. Check UEFI/Kernel settings or ensure you have a compatible X3D CPU."
     exit 1
 fi
 
-CURRENT_MODE=$(cat "$TARGET" 2>/dev/null | tr -d '[:space:]')
+CURRENT_MODE=$(x3d-toggle-c get 2>/dev/null)
 if [ -z "$CURRENT_MODE" ]; then
     CURRENT_MODE="unknown"
 fi
@@ -59,7 +58,7 @@ case "$RAW_CHOICE" in
         ;;
 esac
 
-pkexec /usr/libexec/x3d-apply "$MODE"
+pkexec x3d-toggle-c "$MODE"
 EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -eq 0 ]; then

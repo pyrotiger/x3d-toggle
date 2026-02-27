@@ -17,7 +17,7 @@ optdepends=('gamemode: For GameMode integration'
 makedepends=('git')
 provides=("${pkgname%-git}")
 conflicts=("${pkgname%-git}")
-source=("git+https://github.com/pyrotiger/x3d-toggle.git")
+source=("git+file://${srcdir}/../../")
 md5sums=('SKIP')
 ##pkgname=x3d-toggle
 ##pkgver=1.0.0
@@ -29,7 +29,7 @@ install='x3d-toggle.install'
 
 pkgver() {
     cd "$srcdir/${pkgname%-git}"
-    git describe --long --tags 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+    printf "v%s.r%s.g%s" "$(grep -Po 'VERSION "\K[^"]*' x3d-toggle.c)" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 prepare() {
@@ -48,12 +48,17 @@ X-KDE-Keywords=x3d,vcache,cpu,rabbit,cheetah,llm,encode,streaming,compute,worklo
 EOF
 }
 
+build() {
+    cd "$srcdir/${pkgname%-git}"
+    make PREFIX=/usr
+}
+
 package() {
     cd "$srcdir/${pkgname%-git}"
     
+    install -Dm755 "x3d-toggle-c" "$pkgdir/usr/bin/x3d-toggle-c"
     install -Dm755 "x3d-control" "$pkgdir/usr/bin/x3d-control"
     install -Dm755 "x3d-daemon" "$pkgdir/usr/bin/x3d-daemon"
-    install -Dm755 "x3d-apply" "$pkgdir/usr/libexec/x3d-apply"
     install -Dm644 "assets/ryzen.jpeg" "$pkgdir/usr/share/x3d-toggle/ryzen.jpeg"
     install -Dm644 "org.x3dtoggle.policy" "$pkgdir/usr/share/polkit-1/actions/org.x3dtoggle.policy"
     install -Dm644 "x3d-toggle.conf" "$pkgdir/etc/x3d-toggle.conf"
