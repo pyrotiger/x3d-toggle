@@ -1,53 +1,75 @@
-# x3d-toggle
-### X3D-Control v0.6.4_beta - README.md
+# x3d-toggle (C Implementation)
+### X3D-Control v1.2.0 - README.md
 ### Copyright ©️ 2026 Pyrotiger
 
 ## AMD 3D v-Cache Technology Toggle Control - Community Edition
 A portable, high-performance utility for managing CCD priority on the AMD Ryzen X3D CPUs utilizing vCache technology under Linux via manual control or automated daemon.
 
+**Now refactored into a high-performance C binary (`x3d-toggle-c`) for minimal overhead.**
+
 ### 🔭  Overview  🔭
-This utility provides a graphical interface to the amd-x3d-vcache kernel driver. It allows for real-time manual switching of the CPU scheduler bias to optimize for specific workloads on asymmetric dual-CCD processors via a simple kdialog. It does this by overriding the global hardware state to resolve the asymmetric scheduling gap between CCDs, eliminating the micro-stuttering that current CPPC drivers fail to address.
+This utility provides a graphical interface and automation to the `amd-x3d-vcache` kernel driver. It allows for real-time switching of the CPU scheduler bias to optimize for specific workloads on asymmetric dual-CCD processors (like 7950X3D/9950X3D).
 
 * The Problem: CPPC Latency & Asymmetry
-Modern Linux kernels often struggle with the "Dual-CCD Paradox." On processors like the 9950X3D, the scheduler must decide between:
+  Current CPPC drivers often fail to switch states deterministically, leading to micro-stutters.
 
-  * CCD0 (V-Cache): High-impact gaming performance. 🐰
-
-  * CCD1 (Frequency): High-clock compute performance. 🐆
-
-  Current CPPC (Collaborative Processor Performance Control) drivers often fail to switch these states deterministically, leading to micro-stutters as threads "bounce" between cache and frequency pools.
-
-* The Solution: x3d-toggle - This utility interacts directly with the sysfs platform driver to force a global hardware state.
-
-  * Automated Daemon: Real-time heuristics that detect "Gaming" vs "Compute" loads and shift the entire hardware topology to match the workload before the stutter occurs.
-
-  * Hardware/Manual Modes - Instant, user-defined priority.
-    * Rabbit Mode 🐰 (vCache / CCD0): Prioritizes the CCD equipped with 3D V-Cache. Optimized for gaming and latency-sensitive applications.
-    * Cheetah Mode 🐆 (Frequency / CCD1): Prioritizes the high-frequency CCD. Optimized for local LLM inference, compilation, and raw compute.
-    * Default Scheduler: Defaults to the system driver for dynamic scheduling, conditional on kernel support. Default is CPPC bias scheduler. Disables the automation daemon.
-    * Restart Daemon: Restarts the daemon and persists next boot
+* The Solution: x3d-toggle
+  * **C Binary Backend**: The core logic is now a compiled C binary for instant execution and minimal system overhead.
+  * **Automated Daemon**: Real-time heuristics detect "Gaming" vs "Compute" loads.
+  * **Manual Modes**: Instant user-defined priority via GUI or CLI.
 
 ### 📜  Prerequisites  📜
-* UEFI Configuration: CPPC Dynamic Preferred Cores must be set to [Driver].
-* System Dependencies: kdialog, polkit, procps-ng and libnotify.
+* UEFI Configuration: CPPC Dynamic Preferred Cores set to [Driver].
+* System Dependencies: `kdialog` (GUI), `polkit`, `libnotify`.
+* Build Dependencies: `gcc`, `make`.
 
 ### 🛡️  Architecture Security   🛡️
-The utility interfaces with the sysfs node at /sys/devices/platform/AMDI*/amd_x3d_mode via a dedicated PolicyKit (Polkit) architecture.
-* Isolation: Hardware writes are restricted to a containerized root helper script (/usr/libexec/x3d-apply). 🔒
-* Permissions: The sysfs kernel node remains locked to root:root. 🔒
-* Validation: The helper script sanitizes all inputs before executing state changes via pkexec, ensuring a secure, password-free user experience. 🔒
+The utility interfaces with the sysfs node at `/sys/devices/platform/AMDI*/amd_x3d_mode` via PolicyKit.
+* **C Binary**: Hardware writes are handled by `x3d-toggle-c` (installed to `/usr/bin`).
+* **Polkit**: Actions are authorized via `org.x3dtoggle.policy`.
 
-### 🛰️⚡  Automation Daemon (x3d-auto)  ⚡🤖
-The backend daemon dynamically toggles between Cache, Frequency, and Auto (Driver default) modes by monitoring:
-* Gaming Signatures: Active game threads, Steam overlay layers, and gamemode status.
-* Compute Loads: System load averages trigger Frequency mode for heavy multi-threaded tasks. Customizable, see below.
-* Efficiency: Defaults to Auto for standard desktop workloads.
+### 📦  Installation  📦
 
->[!TIP]
->Development is underway to achieve parity with the AMD v-Cache Technology Optimizer driver through improved detection heuristics.
+#### Arch Linux (PKGBUILD)
+```bash
+git clone https://github.com/pyrotiger/x3d-toggle.git
+cd x3d-toggle
+makepkg -si
+```
 
-### 📦  Installation & Integration  📦
->[!TIP]
+#### Manual Installation (Make)
+```bash
+git clone https://github.com/pyrotiger/x3d-toggle.git
+cd x3d-toggle
+make
+sudo make install
+```
+
+### 🎮 Usage 🎮
+
+#### Command Line
+The core logic is handled by `x3d-toggle-c`:
+```bash
+sudo x3d-toggle-c cache       # Rabbit Mode (Gaming) 🐰
+sudo x3d-toggle-c frequency   # Cheetah Mode (Compute) 🐆
+sudo x3d-toggle-c auto        # Driver Default
+x3d-toggle-c get              # Check current mode
+```
+
+#### GUI Control
+Run `x3d-control` to open the mode selection dialog.
+
+#### Daemon (Automation)
+Enable the user service to automatically switch modes:
+```bash
+systemctl --user enable --now x3d-auto.service
+```
+
+### ⚙️ Configuration ⚙️
+Edit `/etc/x3d-toggle.conf` to customize polling intervals and load thresholds.
+
+### ⚖️ License ⚖️
+GPLv3
 >### Arch Linux / Garuda Linux (Recommended)
 >## x3d-toggle-git
 >* For systems utilizing the `pacman` package manager, deploying via the included `PKGBUILD` is the optimal method. This compiles the utility into a native `x3d-toggle-git` package, automatically resolves dependencies, >and seamlessly integrates the application launcher shortcut into your desktop environment.
