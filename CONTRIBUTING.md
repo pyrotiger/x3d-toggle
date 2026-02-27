@@ -1,11 +1,13 @@
 # Contributing to X3D-Control
 
 ## 1. Architectural Objective
-Contributions must integrate seamlessly with the established PolicyKit (Polkit) security framework. Hardware state modifications must remain isolated to the containerized root helper (`x3d-apply`). Submissions that compromise the password-free execution flow or bypass sysfs input sanitization will be rejected.
+Contributions must integrate seamlessly with the established PolicyKit (Polkit) security framework. Hardware state modifications are now handled by the **C binary** (`x3d-toggle-c`).
 
-## 2. Development & Testing Baseline
-* **Target Hardware:** Validation requires an asymmetric dual-CCD AMD Ryzen processor utilizing 3D V-Cache (e.g., Ryzen 9 9950X3D).
-* **Target Environment:** Native compilation and testing should utilize Arch/Garuda Linux via `makepkg -si`.
+## 2. Development & Testing
+* **Target Hardware:** AMD Ryzen 7000/9000 X3D series.
+* **Build System:** The project uses a simple `Makefile`.
+    * **Build**: `make`
+    * **Install**: `sudo make install`
 * **Telemetry Verification:** Automation daemon modifications must be stress-tested. Verify compute and gaming workload heuristics by monitoring the systemd journal (`journalctl --user -u x3d-auto -f`). Ensure successful toggles between `cache`, `frequency`, and `auto`.
 
 ## 3. Code & UI Standards
