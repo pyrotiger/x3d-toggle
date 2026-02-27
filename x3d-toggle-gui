@@ -50,7 +50,7 @@ RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
     "Hardware: <font color='#3daee9'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#1cdc9a'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" 0 0 0 \
     "cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" "$CACHE_SELECTED" \
     "frequency" "Cheetah Mode (LLM/Raw Compute - CCD1)" "$FREQ_SELECTED" \
-    "auto" "Default Scheduler (Disable Automation)" "$AUTO_SELECTED" \
+    "auto" "Elk Mode (Default Scheduler/Disable Automation)" "$AUTO_SELECTED" \
     "restart_daemon" "Restart/Enable Automation Daemon" "off")
 
 [ -z "$RAW_CHOICE" ] && exit 0

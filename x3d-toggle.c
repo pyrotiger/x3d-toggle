@@ -18,7 +18,7 @@ void print_usage(const char *prog_name) {
     printf("Commands:\n");
     printf("  cache        Enable 3D V-Cache preference (Rabbit Mode)\n");
     printf("  frequency    Enable Frequency preference (Cheetah Mode)\n");
-    printf("  auto         Reset to OS default behavior\n");
+    printf("  auto         Reset to OS default behavior (Elk Mode)\n");
     printf("  get          Print current mode\n");
     printf("  check-load   Check if CPU usage exceeds threshold (Return 0 if yes)\n");
     printf("               Arg: <threshold_percent> (default: 50)\n");

@@ -52,7 +52,7 @@ The core logic is handled by `x3d-toggle-c`:
 ```bash
 sudo x3d-toggle-c cache       # Rabbit Mode (Gaming) 🐰
 sudo x3d-toggle-c frequency   # Cheetah Mode (Compute) 🐆
-sudo x3d-toggle-c auto        # Driver Default
+sudo x3d-toggle-c auto        # Elk Mode (Driver Default)
 x3d-toggle-c get              # Check current mode
 ```
 
@@ -93,7 +93,7 @@ sudo ./install.sh
   ```bash
   x3d-control
   ```
-* Accepted Keywords for Launcher: `x3d` `vcache` `cpu` `rabbit` `cheetah` `llm` `encode` `streaming` `workload` `compute`
+* Accepted Keywords for Launcher: `x3d` `vcache` `cpu` `rabbit` `cheetah` `llm` `encode` `streaming` `workload` `compute` `elk`
 * If you opted out of the automation daemon initalization during install, you can start the daemon by running this command in your terminal:
   ```bash
   systemctl --user enable --now x3d-auto
