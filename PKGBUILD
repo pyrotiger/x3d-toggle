@@ -3,7 +3,7 @@
 #Copyright (C) 2026 Pyrotiger
 
 pkgname=x3d-toggle-git
-pkgver=v0.6.4_beta.r8.g4961177
+pkgver=v1.2.0.r52.g177d7ca
 pkgrel=1
 pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
 arch=('any')
@@ -17,7 +17,7 @@ optdepends=('gamemode: For GameMode integration'
 makedepends=('git')
 provides=("${pkgname%-git}")
 conflicts=("${pkgname%-git}")
-source=("git+file://${srcdir}/../../")
+source=("git+https://github.com/pyrotiger/x3d-toggle.git")
 md5sums=('SKIP')
 ##pkgname=x3d-toggle
 ##pkgver=1.0.0
