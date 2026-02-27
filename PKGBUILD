@@ -4,7 +4,7 @@
 
 _pkgname=x3d-toggle
 pkgname="${_pkgname}-git"
-pkgver=v1.0.0.r69.gaeba67b
+pkgver=v1.0.0
 pkgrel=1
 pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
 arch=('x86_64')
