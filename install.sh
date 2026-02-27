@@ -2,7 +2,7 @@
 #X3D-Control v0.6.4_beta - install.sh
 #Copyright (C) 2026 Pyrotiger
 
-set -e # Exit on error
+set -e
 
 if [[ $EUID -ne 0 ]]; then
    echo "Error: This installer must be run with sudo."
