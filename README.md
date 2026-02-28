@@ -28,80 +28,74 @@ The utility interfaces with the sysfs node at `/sys/devices/platform/AMDI*/amd_x
 * **C Binary**: Hardware writes are handled by `x3d-toggle` (installed to `/usr/bin`).
 * **Polkit**: Actions are authorized via `org.x3dtoggle.policy`.
 
-### 📦  Installation  📦
+### 📦  Installation Methods 📦
 
-#### Arch Linux (PKGBUILD)
+#### 1. Arch Linux / Garuda (via Pre-compiled Pacman Package)
+If you download the compiled Arch package directly from the **Releases** page (`.pkg.tar.zst`), you can install it seamlessly using `pacman` without needing to compile it yourself:
+```bash
+# Enter the folder where you downloaded the release file:
+cd ~/Downloads/
+sudo pacman -U x3d-toggle-*.pkg.tar.zst
+```
+
+#### 2. Arch Linux / Garuda (via Local PKGBUILD / Git Clone)
+For developers or those wanting to compile directly from the absolute latest commits dynamically. The `makepkg` command automatically builds the C binary and wraps it into a `pacman` installation for you:
 ```bash
 git clone https://github.com/pyrotiger/x3d-toggle.git
 cd x3d-toggle
 makepkg -si
 ```
 
-#### Manual Installation (Make)
+#### 3. Manual Build (Make - Debian/Fedora/Ubuntu/Etc)
+If you are running a non-Arch distro without `pacman` or `makepkg`:
 ```bash
+# Download the source archive or run git clone
 git clone https://github.com/pyrotiger/x3d-toggle.git
 cd x3d-toggle
 make
 sudo make install
 ```
 
-### 🎮 Usage 🎮
+### 🎮 Application Usage 🎮
 
-#### Command Line
-The core logic is handled by `x3d-toggle`:
-```bash
-sudo x3d-toggle cache       # Rabbit Mode (Gaming) 🐰
-sudo x3d-toggle frequency   # Cheetah Mode (Compute) 🐆
-sudo x3d-toggle auto        # Elk Mode (Driver Default) 🦌
-x3d-toggle get              # Check current mode 🔎
-```
-
-#### GUI Control
-Run `x3d-toggle-gui` to open the mode selection dialog.
-
-#### Daemon (Automation)
-Enable the user service to automatically switch modes:
-```bash
-systemctl --user enable --now x3d-auto.service
-```
-
-### ⚙️ Configuration ⚙️
-Edit `/etc/x3d-toggle.conf` to customize polling intervals and load thresholds.
-
-### ⚖️ License ⚖️
-GPLv3
->### Arch Linux / Garuda Linux (Recommended)
->## x3d-toggle-git
->* For systems utilizing the `pacman` package manager, deploying via the included `PKGBUILD` is the optimal method. This compiles the utility into a native `x3d-toggle-git` package, automatically resolves dependencies, >and seamlessly integrates the application launcher shortcut into your desktop environment.
->
->**Deployment Execution:**
->
->```bash
->git clone [https://github.com/pyrotiger/x3d-toggle.git](https://github.com/pyrotiger/x3d-toggle.git)
->cd x3d-toggle
->makepkg -si
->```
-## 🛠️  Manual Installation  🛠️
-```bash
-git clone https://github.com/pyrotiger/x3d-toggle.git
-cd x3d-toggle
-make
-sudo make install
-```
-### 🚀  Usage  🚀
 * Launch the GUI/Interface via your application launcher (search for "X3D CCD Control") or execute via terminal:
   ```bash
   x3d-toggle-gui
   ```
-* Accepted Keywords for Launcher: `x3d` `vcache` `cpu` `rabbit` `cheetah` `llm` `encode` `streaming` `workload` `compute` `elk`
+* Accepted Desktop Launcher Keywords: `x3d` `vcache` `cpu` `rabbit` `cheetah` `llm` `encode` `streaming` `workload` `compute` `elk`
 * **Note on Desktop Shortcuts:** In Arch Linux, packages securely place their `.desktop` files in your Application Launcher (`/usr/share/applications/`), rather than forcing icons onto your physical Desktop. If you prefer a literal shortcut icon on your Desktop, simply run this command:
   ```bash
   cp /usr/share/applications/x3d-toggle-gui.desktop ~/Desktop/ && chmod +x ~/Desktop/x3d-toggle-gui.desktop
   ```
-* If you opted out of the automation daemon initalization during install, you can start the daemon by running this command in your terminal:
-  ```bash
-  systemctl --user enable --now x3d-auto
-  ```
+
+### ⚙️ Background Daemon & Utilities ⚙️
+
+#### Automated Scheduling Service
+Enable the user service to allow the background daemon to dynamically switch your system between Cache and Frequency profiles based on live workloads:
+```bash
+systemctl --user enable --now x3d-auto.service
+```
+
+#### Configuration Overrides
+To fine-tune the daemon's behavior, edit the configuration file `/etc/x3d-toggle.conf` (Requires `sudo` to edit):
+*  **Poll Interval:** Adjust how frequently the daemon checks for state changes (Default: 3s).
+*  **Compute Threshold:** Set the CPU usage percentage required to trigger Frequency mode (Default: 50%).
+*  **Note:** After editing, restart the daemon to apply changes:
+   ```bash
+   systemctl --user restart x3d-auto
+   ```
+
+#### CLI Administration Commands
+The core `sysfs` writes are handled silently by the `x3d-toggle` compiled C binary. You can run checks manually:
+```bash
+sudo x3d-toggle cache       # Rabbit Mode (Gaming) 🐰
+sudo x3d-toggle frequency   # Cheetah Mode (Compute) 🐆
+sudo x3d-toggle auto        # Elk Mode (Driver Default) 🦌
+x3d-toggle get              # Check current active hardware mode 🔎
+```
+
+### ⚖️ License ⚖️
+GPLv3
 ### ⚙️  Customizations  ⚙️
 *  To change the notification icon, replace the existing asset:
    *  Path: /usr/share/x3d-toggle/ryzen.jpeg
