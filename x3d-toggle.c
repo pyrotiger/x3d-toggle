@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
         mode = "frequency";
     } else if (strcmp(argv[1], "auto") == 0) {
 
-        mode = "frequency";
+        mode = "auto";
     } else {
         fprintf(stderr, "Unknown command: %s\n", argv[1]);
         print_usage(argv[0]);

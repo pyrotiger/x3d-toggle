@@ -106,7 +106,7 @@ while true; do
     elif check_compute_intent; then
         NEW_MODE="frequency"
     else
-        NEW_MODE="frequency"
+        NEW_MODE="auto"
     fi
 
     CURRENT=$(x3d-toggle get 2>/dev/null)
