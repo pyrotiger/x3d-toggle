@@ -2,12 +2,21 @@
 
 post_install() {
     echo ""
-    echo ":: x3d-toggle has been installed."
+    echo "========================================================================"
+    echo ":: x3d-toggle has been successfully installed!"
+    echo "========================================================================"
     echo "   To enable the automatic CCD scheduler daemon for your user, run:"
     echo "     systemctl --user enable --now x3d-auto.service"
     echo ""
     echo "   To configure thresholds and polling intervals, edit:"
     echo "     /etc/x3d-toggle.conf"
+    echo ""
+    echo "   NOTE ON DESKTOP SHORTCUTS:"
+    echo "   The application launcher has been installed to your system's menu."
+    echo "   If you prefer a literal shortcut icon on your Desktop, run:"
+    echo "     cp /usr/share/applications/x3d-toggle-gui.desktop ~/Desktop/"
+    echo "     chmod +x ~/Desktop/x3d-toggle-gui.desktop"
+    echo "========================================================================"
     echo ""
 }
 

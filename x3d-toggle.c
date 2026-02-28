@@ -6,7 +6,7 @@
 #include <ftw.h>
 #include <errno.h>
 
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 #define AMD_X3D_MODE_FILENAME "amd_x3d_mode"
 #define SYS_PLATFORM_DIR "/sys/devices/platform"
 
@@ -76,8 +76,8 @@ unsigned long long get_cpu_stats(unsigned long long *idle) {
     
     user = nice = system = idle_ticks = iowait = irq = softirq = steal = 0;
 
-    // We use %*s to ignore the first token (like "cpu" or "cpu0")
-    sscanf(buffer, "%*s %llu %llu %llu %llu %llu %llu %llu %llu", 
+    // We use \"cpu \" explicitly to parse the first aggregate line correctly
+    sscanf(buffer, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", 
            &user, &nice, &system, &idle_ticks, &iowait, &irq, &softirq, &steal);
 
     if (idle) *idle = idle_ticks + iowait; 
@@ -207,7 +207,8 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[1], "frequency") == 0 || strcmp(argv[1], "freq") == 0) { 
         mode = "frequency";
     } else if (strcmp(argv[1], "auto") == 0) {
-        mode = "auto";
+        // Map "auto" placeholder to "frequency" for sysfs compatibility
+        mode = "frequency";
     } else {
         fprintf(stderr, "Unknown command: %s\n", argv[1]);
         print_usage(argv[0]);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#X3D-Toggle v1.0.2 - x3d-toggle-gui
+#X3D-Toggle v1.0.3 - x3d-toggle-gui
 #Copyright (C) 2026 Pyrotiger
 
 notify_user() {
@@ -47,7 +47,7 @@ else
 fi
 
 RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
-    "Hardware: <font color='#3daee9'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#1cdc9a'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" 0 0 0 \
+    "Hardware: <font color='#3daee9'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#1cdc9a'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" \
     "cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" "$CACHE_SELECTED" \
     "frequency" "Cheetah Mode (LLM/Raw Compute - CCD1)" "$FREQ_SELECTED" \
     "auto" "Elk Mode (Default Scheduler/Disable Automation)" "$AUTO_SELECTED" \
@@ -58,9 +58,10 @@ RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
 case "$RAW_CHOICE" in
     "cache"|"frequency"|"auto")
         MODE="$RAW_CHOICE"
+        # Pause automation daemon during manual override
         if systemctl --user is-active --quiet "$SERVICE_NAME"; then
             systemctl --user stop "$SERVICE_NAME"
-            notify_user "X3D Toggle" "Manual mode engaged. Automation Daemon paused."
+            notify_user "X3D Toggle" "Manual $MODE override engaged. Automation Daemon paused."
         fi
         ;;
     "restart_daemon")

@@ -1,5 +1,5 @@
 # x3d-toggle (C Implementation)
-### X3D-Toggle v1.0.2 - README.md
+### X3D-Toggle v1.0.3 - README.md
 ### Copyright ©️ 2026 Pyrotiger
 
 ## AMD 3D v-Cache Technology Toggle Control - Community Edition
@@ -91,9 +91,13 @@ sudo make install
 ### 🚀  Usage  🚀
 * Launch the GUI/Interface via your application launcher (search for "X3D CCD Control") or execute via terminal:
   ```bash
-  x3d-control
+  x3d-toggle-gui
   ```
 * Accepted Keywords for Launcher: `x3d` `vcache` `cpu` `rabbit` `cheetah` `llm` `encode` `streaming` `workload` `compute` `elk`
+* **Note on Desktop Shortcuts:** In Arch Linux, packages securely place their `.desktop` files in your Application Launcher (`/usr/share/applications/`), rather than forcing icons onto your physical Desktop. If you prefer a literal shortcut icon on your Desktop, simply run this command:
+  ```bash
+  cp /usr/share/applications/x3d-toggle-gui.desktop ~/Desktop/ && chmod +x ~/Desktop/x3d-toggle-gui.desktop
+  ```
 * If you opted out of the automation daemon initalization during install, you can start the daemon by running this command in your terminal:
   ```bash
   systemctl --user enable --now x3d-auto

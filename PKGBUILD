@@ -4,7 +4,7 @@
 
 _pkgname=x3d-toggle
 pkgname="${_pkgname}"
-pkgver=1.0.2
+pkgver=1.0.3
 pkgrel=1
 pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
 arch=('x86_64')
@@ -15,16 +15,13 @@ optdepends=('gamemode: For GameMode integration'
             'steam: For Steam game detection' 
             'wine: For Windows game compatibility' 
             'proton: For Steam Play compatibility')
-# Removed makedepends on git as we use a release tarball now
 options=('!debug')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}" "${_pkgname}-git")
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('ac863851736af16f7a9995308bd6bfbf8b7440dc31d9789e200ecaa2f9faff17')
+sha256sums=('SKIP')
 backup=('etc/x3d-toggle.conf')
 install='x3d-toggle.install'
-
-# Removed pkgver() since we use fixed versions for release packages
 
 prepare() {
     cd "$srcdir/${_pkgname}-${pkgver}" || return 1
@@ -35,7 +32,7 @@ Name=X3D CCD Toggle
 GenericName=AMD 3D v-Cache Technology Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
 Exec=/usr/bin/x3d-toggle-gui
-Icon=/usr/share/x3d-toggle/ryzen.jpeg
+Icon=x3d-toggle
 Terminal=false
 Categories=System;Settings;
 Keywords=amd;x3d;vcache;gaming;llm;encode;streaming;compute;workload;elk;
@@ -51,7 +48,6 @@ build() {
 package() {
     cd "$srcdir/${_pkgname}-${pkgver}" || return 1
 
-    # Utilize Makefile for logically sound installation
     make DESTDIR="$pkgdir" PREFIX=/usr install
     install -Dm644 "x3d-toggle-gui.desktop" "$pkgdir/usr/share/applications/x3d-toggle-gui.desktop"
 }

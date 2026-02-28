@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#X3D-Toggle v1.0.2 - Autonomous Daemon Scheduler
+#X3D-Toggle v1.0.3 - Autonomous Daemon Scheduler
 #Copyright (C) 2026 Pyrotiger
 
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"
@@ -63,12 +63,12 @@ refresh_game_cache() {
 refresh_game_cache
 
 check_gaming_intent() {
-    if command -v gamemoded &> /dev/null && gamemoded -s 2>/dev/null | grep -q "active"; then
+    if command -v gamemoded &> /dev/null && gamemoded -s 2>/dev/null | grep -qw "active"; then
         return 0
     fi
 
     if [ -d "$STEAM_DATA" ]; then
-        if pgrep -f "reaper|Proton|wine-preloader|steam" > /dev/null 2>&1; then
+        if pgrep -f "steam-runtime|Proton|wine-preloader|steamapps\/common" > /dev/null 2>&1; then
             return 0
         fi
     fi
@@ -106,7 +106,7 @@ while true; do
     elif check_compute_intent; then
         NEW_MODE="frequency"
     else
-        NEW_MODE="auto"
+        NEW_MODE="frequency"
     fi
 
     CURRENT=$(x3d-toggle get 2>/dev/null)

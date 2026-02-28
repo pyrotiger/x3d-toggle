@@ -35,6 +35,9 @@ install: $(TARGET)
 	install -d $(SHAREDIR)
 	install -m 644 assets/ryzen.jpeg $(SHAREDIR)/ryzen.jpeg
 	
+	install -d $(DESTDIR)$(PREFIX)/share/pixmaps
+	install -m 644 assets/ryzen.jpeg $(DESTDIR)$(PREFIX)/share/pixmaps/x3d-toggle.jpeg
+	
 	install -d $(POLKITDIR)
 	install -m 644 org.x3dtoggle.policy $(POLKITDIR)/org.x3dtoggle.policy
 	
@@ -53,6 +56,7 @@ uninstall:
 	rm -f $(BINDIR)/x3d-daemon
 	rm -f $(CONFDIR)/x3d-toggle.conf
 	rm -rf $(SHAREDIR)
+	rm -f $(DESTDIR)$(PREFIX)/share/pixmaps/x3d-toggle.jpeg
 	rm -f $(POLKITDIR)/org.x3dtoggle.policy
 	rm -f $(SYSTEMDDIR)/x3d-auto.service
 	rm -rf $(LICENSESDIR)
