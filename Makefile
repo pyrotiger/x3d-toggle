@@ -14,6 +14,7 @@ POLKITDIR = $(DESTDIR)$(PREFIX)/share/polkit-1/actions
 SYSTEMDDIR = $(DESTDIR)$(PREFIX)/lib/systemd/user
 APPDIR = $(DESTDIR)$(PREFIX)/share/applications
 LICENSESDIR = $(DESTDIR)$(PREFIX)/share/licenses/x3d-toggle
+PACKAGER = "Pyrotiger <65628850+pyrotiger@users.noreply.github.com>"
 
 all: $(TARGET)
 
