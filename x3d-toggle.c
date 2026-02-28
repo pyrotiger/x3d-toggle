@@ -34,7 +34,6 @@ char *find_x3d_mode_file() {
     glob_t globbuf;
     char *result_path = NULL;
 
-    // Use GLOB_NOSORT. It directly returns the matched files quickly
     if (glob(AMD_X3D_MODE_GLOB, GLOB_NOSORT, NULL, &globbuf) == 0) {
         if (globbuf.gl_pathc > 0) {
             result_path = strdup(globbuf.gl_pathv[0]);
@@ -60,7 +59,6 @@ unsigned long long get_cpu_stats(unsigned long long *idle) {
     
     user = nice = system = idle_ticks = iowait = irq = softirq = steal = 0;
 
-    // We use \"cpu \" explicitly to parse the first aggregate line correctly
     sscanf(buffer, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", 
            &user, &nice, &system, &idle_ticks, &iowait, &irq, &softirq, &steal);
 
@@ -86,9 +84,9 @@ int check_compute_load(int threshold, int sample_ms) {
     unsigned long long usage_pct = (100 * (total_delta - idle_delta)) / total_delta;
     
     if (usage_pct >= (unsigned int)threshold) {
-        return 1; // True, load is high
+        return 1;
     }
-    return 0; // False
+    return 0;
 }
 
 int get_mode() {
@@ -175,9 +173,9 @@ int main(int argc, char *argv[]) {
             threshold = (int)parsed;
         }
         if (check_compute_load(threshold, 200)) {
-            return 0; // Success (Load is high)
+            return 0;
         } else {
-            return 1; // Failure (Load is low)
+            return 1;
         }
     }
 
@@ -191,7 +189,7 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[1], "frequency") == 0 || strcmp(argv[1], "freq") == 0) { 
         mode = "frequency";
     } else if (strcmp(argv[1], "auto") == 0) {
-        // Map "auto" placeholder to "frequency" for sysfs compatibility
+
         mode = "frequency";
     } else {
         fprintf(stderr, "Unknown command: %s\n", argv[1]);
