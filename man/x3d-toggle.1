@@ -1,0 +1,121 @@
+.TH x3d-toggle 1 "2026-02-28" "x3d-toggle 1.2.0" "User Commands"
+.SH NAME
+x3d-toggle \- control AMD 3D V-Cache Performance Optimizer Preference and related daemon
+.SH SYNOPSIS
+.B x3d-toggle
+.RI " <command> [args]"
+.SH DESCRIPTION
+x3d-toggle is a small privileged helper that writes a preferred mode to the
+kernel sysfs node for AMD 3D V-Cache capable systems and provides a few
+utility commands for configuration and diagnostics. The program is intended
+to be invoked via PolicyKit (for example with \fBpkexec\fP) from desktop
+frontends or user services.
+.SH COMMANDS
+.TP
+.B cache
+Set the hardware preference to favor 3D V-Cache ("Rabbit Mode"). Requires root.
+.TP
+.B frequency
+Set the hardware preference to favor raw frequency ("Cheetah Mode"). Requires root.
+.TP
+.B auto
+Reset to the default scheduler behavior ("Elk Mode"). Requires root.
+.TP
+.B get
+Print the current effective mode (reads the sysfs node).
+.TP
+.B check-load [threshold]
+Return success (exit 0) when the system compute load is at-or-above the
+specified threshold percent (integer 0..100). Defaults to 50.
+.TP
+.B set \fIkey value [config_path]\fR
+Atomically write a configuration key/value pair to the config file. Supported
+keys: \fBpolling\fR (seconds), \fBcompute\fR (percent), \fBgame\fR (mode),
+and \fBlogmode\fR (one of: \fBstdout\fR, \fBfile\fR, \fBnone\fR).
+.TP
+.B log-on [config_path]
+Write \fBlogmode=stdout\fR to the config file (requires root).
+.TP
+.B log-off [config_path]
+Write \fBlogmode=none\fR to the config file (requires root).
+.TP
+.B log-file [config_path]
+Write \fBlogmode=file\fR to the config file (requires root).
+.TP
+.B help, -h, --help
+Show brief help and exit.
+.SH EXIT STATUS
+The utility returns 0 on success for queries such as \fBget\fP and when
+operations succeed. Failure to write the sysfs node, invalid arguments, or
+insufficient privileges return non-zero.
+.SH EXAMPLES
+.TP
+.B Set Rabbit Mode (prefer V-Cache)
+.RS
+.nf
+  pkexec x3d-toggle cache
+.fi
+.RE
+.TP
+.B Query current mode
+.RS
+.nf
+  x3d-toggle get
+.fi
+.RE
+.TP
+.B Check whether compute load exceeds 75%%
+.RS
+.nf
+  if x3d-toggle check-load 75; then
+    echo "High compute load"
+  fi
+.fi
+.RE
+.TP
+.B Update polling interval in system config
+.RS
+.nf
+  pkexec x3d-toggle set polling 5 /etc/x3d-toggle.conf
+.fi
+.RE
+.TP
+.B Enable stdout logging (persisted)
+.RS
+.nf
+  pkexec x3d-toggle log-on /etc/x3d-toggle.conf
+.fi
+.RE
+.TP
+.B Enable file logging
+.RS
+.nf
+  pkexec x3d-toggle log-file
+.fi
+.RE
+.TP
+.B Developer: force stdout while elevated
+.RS
+.nf
+  # allow elevated process to print to stdout for debugging
+  X3D_TOGGLE_ALLOW_STDOUT=1 pkexec x3d-toggle cache
+.fi
+.RE
+.SH FILES
+.TP
+/etc/x3d-toggle.conf
+Default configuration file (key=value format).
+.TP
+/sys/devices/platform/AMDI*/amd_x3d_mode
+Kernel sysfs node(s) used to set/read the preferred mode.
+.SH SECURITY
+Writes to the kernel sysfs node and to system configuration require root
+privileges; the project expects frontends to use PolicyKit (for example
+\fBpkexec\fP) rather than setuid binaries. The utility always records
+operation audit messages to the system log via \fBsyslog(3)\fP.
+.SH SEE ALSO
+.BR pkexec (1),
+.BR systemd (1),
+.BR syslog (3)
+.SH AUTHOR
+Pyrotiger <65628850+pyrotiger@users.noreply.github.com>

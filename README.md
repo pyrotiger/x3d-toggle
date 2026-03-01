@@ -1,9 +1,9 @@
 # x3d-toggle (C Implementation)
-### X3D-Toggle v1.0.4 - README.md
+### X3D-Toggle v1.2.0 - README.md
 ### Copyright ©️ 2026 Pyrotiger - License: GPLv3
 
-## AMD 3D v-Cache Technology Toggle Control - Community Edition
-A portable, high-performance utility for managing CCD priority on the AMD Ryzen X3D CPUs utilizing vCache technology under Linux via manual control or automated daemon.
+## AMD 3D V-Cache Performance Optimizer Toggle Control - Community Edition
+A portable, high-performance utility for managing CCD priority on the AMD Ryzen X3D CPUs utilizing the 3D V-Cache Performance Optimizer under Linux via manual control or automated daemon.
 
 ### 🔭  Overview  🔭
 This utility provides a graphical interface and automation to the `amd-x3d-vcache` kernel driver. It allows for real-time switching of the CPU scheduler bias to optimize for specific workloads on asymmetric dual-CCD processors (like 7950X3D/9950X3D).
@@ -17,6 +17,7 @@ This utility provides a graphical interface and automation to the `amd-x3d-vcach
   * **Manual Modes**: Instant user-defined priority via GUI or CLI.
 
 ### 📜  Prerequisites  📜
+* **Linux Kernel**: 6.13 minimum (provides `amd-x3d-vcache` sysfs node); 7.0+ is recommended to take advantage of the daemon's advanced scheduling features (specifically, real-time CPPC dynamic preferred core hinting and zero-latency thread delegation during compute bursts). When coupled with the daemon (and planned eBPF refinements), this brings full feature parity of the Windows AMD 3D V-Cache Performance Optimizer driver to Linux.
 * UEFI Configuration: CPPC Dynamic Preferred Cores set to [Driver].
 * System Dependencies: `kdialog` (GUI), `polkit`, `libnotify`.
 * Build Dependencies: `gcc`, `make`.
@@ -99,6 +100,14 @@ x3d-toggle check-load <threshold>     # Performant C check against load % 🧠
 *  To change the notification icon, replace the existing asset:
    *  Path: /usr/share/x3d-toggle/ryzen.png
    *  Requirement: Image must be named ryzen.png and in png format
+
+### 🧰  Developer Tools & Sandbox  🧰
+Developers or enthusiasts who want to modify the source can run the dynamic testing suite directly from the source directory. This leverages `bwrap` (Bubblewrap) to create an isolated, read-only root system, preventing test logic from overwriting your physical OS directories:
+```bash
+./dev/dev-helper.sh install-all
+./dev/dev-helper.sh test
+```
+The standard GUI also detects missing components and provides prompts to pull standard developer suites automatically when the wizard's easter egg is found.
 
 ### 🚮  Uninstallation  🚮
 To uninstall all binaries and assets, run the following:

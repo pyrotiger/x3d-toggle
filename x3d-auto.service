@@ -1,8 +1,8 @@
-#X3D-Toggle v1.0.2 - x3d-auto.service
+#X3D-Toggle v1.2.0 - x3d-auto.service
 #Copyright (C) 2026 Pyrotiger
 
 [Unit]
-Description=AMD X3D VCACHE Technology Autonomous Daemon Scheduler
+Description=AMD 3D V-Cache Performance Optimizer Autonomous Daemon Scheduler
 ConditionPathExists=/usr/bin/x3d-daemon
 After=graphical-session.target
 
@@ -10,6 +10,18 @@ After=graphical-session.target
 ExecStart=/usr/bin/x3d-daemon
 Restart=always
 RestartSec=3
+# Hardening: reduce privilege surface for the user service
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+PrivateDevices=yes
+ReadOnlyPaths=/usr/bin /usr/lib /etc
+ReadWritePaths=%t %h/.local/share/x3d-toggle
 
 [Install]
 WantedBy=graphical-session.target

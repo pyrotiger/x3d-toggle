@@ -1,0 +1,11 @@
+// This file is a template for a local, ignored polkit JS rule.
+// Copy it to dev/49-org.x3dtoggle.rules.local and install with the helper when
+// you want passwordless dev UX. The filename pattern dev/*.local.rules is
+// ignored by .gitignore so local edits are not committed.
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.x3dtoggle.apply" &&
+        subject.isInGroup("x3dtoggle")) {
+        return polkit.Result.YES;
+    }
+});

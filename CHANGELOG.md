@@ -1,3 +1,41 @@
+# v1.2.0 - Developer Mode & Feature Parity Release 🛠️
+
+This major update expands testing frameworks for power users and contributors, offering full structural execution logic parity between the raw terminal CLI options and the graphical GUI applet.
+
+## 🔒 PolicyKit Modernization
+* **JavaScript Rules Unification:** Upgraded permission structures entirely from the deprecated `.pkla`/localauthority legacy system to modern, JS-based `polkit` rules (`/etc/polkit-1/rules.d/`). This eliminates bifurcated logic schemas and brings the application up to standard with modern `polkit > 120` engines natively.
+
+## 🧰 Developer Utilities
+* **Sandbox Execution Isolation:** Built and integrated robust `bubblewrap` (bwrap) native isolation into developer test staging (`dev/dev-helper.sh`), mounting standard lib bindings (`/usr/lib`, `/usr/bin`) seamlessly for safe localized testing.
+* **Persistent GUI Evaluation Loop:** Added an endless loop logic specifically within `x3d-toggle-gui` when triggered inside Developer Mode, removing the need to repeatedly call scripts when generating continuous state validations alongside kernel logs.
+* **Dynamic Environment On-Boarding:** The GUI now detects missing developer directories natively and prompts to dynamically `git clone` the required backend toolchains on-the-fly when isolated packagers enable Dev Mode.
+* **Dynamic Multi-Threaded CPU Spiker:** Introduced the `stress` environment option which automatically natively binds testing instances concurrently matched perfectly to your system's `nproc` geometry map.
+
+## ⚖️ CLI & GUI Parity
+* **Intuitive Root Fallback:** Executing the bare backend binary `x3d-toggle` via standard user inputs natively falls back to launch the frontend `x3d-toggle-gui` smoothly, transitioning standard users to graphics instead of explicit raw errors.
+* **Dynamic Terminal Parameter Maps:** Added direct time evaluation directly inside the C Proxy. Standard users can now pass explicitly typed testing lengths like `x3d-toggle stress 45` natively into the terminal.
+
+---
+
+# v1.1.0 - Sanitization, Security Hardening & Structural Optimization Release 🛡️
+
+Focusing strictly on underlying codebase safety and systemic stability. This update sweeps across C objects and bash logic eliminating edge-case behaviors, resolving path execution drops, strictly consolidating directories, and implementing aggressive security auditing.
+
+## 📁 Repository Structural Consolidation
+* **Lean File Architecture Framework:** Consolidated root and fragmented directories standardizing standard package elements into explicit path arrays (`/pkg`, `/man`, and `/dev`). Moved disparate execution shell files and config fragments resolving standard structural repository bloat for a significantly cleaner presentation.
+
+## 🔒 Security Hardening & Isolation Updates
+* **Bounded String Evaluations (C Binary):** Overhauled shell injections by implementing secure integer `strtol()` boundaries natively within the C proxy. This accurately limits stress test intervals between explicit safe boundaries (1-300 seconds), rejecting raw, arbitrary, or unintended character inputs out of bounds.
+* **Implicit Path Restorations (C binary):** Hardened UI-fallback via distinct `execlp` system calls preventing unchecked sub-shell invocations.
+* **Privilege Segregation:** Assured that root-owned execution functions inherently utilize explicitly targeted paths (`/usr/bin/x3d-toggle...`) checking bounds rather than exposing unfiltered commands safely through `pkexec`.
+
+## 🧹 Linter Passes & Code Sanitization
+* **Global Syntax Correction:** Subjected entire project logic to `shellcheck`, `cppcheck`, and `clang-tidy`, standardizing logic evaluations safely through explicit quoting and strictly typed argument arrays.
+* **Fail-Safe UI Pipes:** Added graceful exit handles (`|| true`) natively to sensitive pipeline logic, guaranteeing strict error `set -e` environments don't catastrophically abort UI execution processes when `grep` searches zero-length configuration contexts.
+* **Path Directory Protections:** Resolved explicit `REPO_ROOT` path detection dynamically crashing graphical components natively during terminal path aliases (`..`).
+
+---
+
 # v1.0.4 - Performance Optimization Update 🚀
   
 *   **Path Resolution Upgrade:** Transitioned the `x3d-toggle` compiled C backend from using (`nftw`) to `glob()` implementation. This change removes overhead latency when scanning `/sys/devices/platform` directories for the `amd_x3d_mode` kernel node, significantly cutting execution time for sysfs writes and hardware reads.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#X3D-Toggle v1.0.4 - Autonomous Daemon Scheduler
+#X3D-Toggle v1.2.0 - Autonomous Daemon Scheduler
 #Copyright (C) 2026 Pyrotiger
 
 STEAM_DATA="$HOME/.local/share/Steam/steamapps"

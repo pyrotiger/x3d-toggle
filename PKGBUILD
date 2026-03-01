@@ -4,9 +4,9 @@
 
 _pkgname=x3d-toggle
 pkgname="${_pkgname}"
-pkgver=1.0.4
+pkgver=1.2.0
 pkgrel=1
-pkgdesc="AMD 3D V-Cache Technology Toggle Control - Community Edition"
+pkgdesc="AMD 3D V-Cache Performance Optimizer Toggle Control - Community Edition"
 arch=('x86_64')
 url="https://github.com/pyrotiger/x3d-toggle"
 license=('GPL-3.0-only')
@@ -19,17 +19,17 @@ options=('!debug')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}" "${_pkgname}-git")
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('8d4c8befb5f49c05c80f6530ca3b9802f19094a5ceff42af12c63e7e19e889c8')
+sha256sums=('SKIP')
 backup=('etc/x3d-toggle.conf')
 install='x3d-toggle.install'
 
 prepare() {
     cd "$srcdir/${_pkgname}-${pkgver}" || return 1
-    cat <<EOF > "x3d-toggle-gui.desktop"
+    cat <<'DESK' > "x3d-toggle-gui.desktop"
 [Desktop Entry]
 Type=Application
 Name=X3D CCD Toggle
-GenericName=AMD 3D v-Cache Technology Mode Switcher
+GenericName=AMD 3D V-Cache Performance Optimizer Mode Switcher
 Comment=Toggle between Rabbit (Cache) and Cheetah (Frequency) modes
 Exec=/usr/bin/x3d-toggle-gui
 Icon=/usr/share/icons/hicolor/256x256/apps/x3d-toggle.png
@@ -37,7 +37,7 @@ Terminal=false
 Categories=System;Settings;
 Keywords=amd;x3d;vcache;gaming;llm;encode;streaming;compute;workload;elk;
 X-KDE-Keywords=x3d,vcache,cpu,rabbit,cheetah,elk,llm,encode,streaming,compute,workload
-EOF
+DESK
 }
 
 build() {

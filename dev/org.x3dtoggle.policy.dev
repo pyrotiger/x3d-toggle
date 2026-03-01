@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>X3D-Toggle (dev)</vendor>
+  <vendor_url>https://github.com/pyrotiger/x3d-toggle</vendor_url>
+  
+  <action id="org.x3dtoggle.apply.dev">
+    <description>Apply AMD X3D V-Cache Priority Mode (dev)</description>
+    <message>Authentication is required to change the X3D hardware state (dev)</message>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <!-- This exec.path must match the exact path passed to pkexec in the test installer -->
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/x3d-toggle.dev</annotate>
+  </action>
+</policyconfig>

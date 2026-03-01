@@ -14,14 +14,15 @@
 - The project **strictly uses PolicyKit** (`org.x3dtoggle.policy`) for privilege elevation. Do not implement `setuid` bits or raw `sudo` commands inside the user-facing GUI/daemon. Always use `pkexec /usr/bin/x3d-toggle` when invoking from user-space scripts.
 - The C binary enforces safety by checking `geteuid() == 0` securely.
 
-## Developer Workflows & Build Commands
-- **Standard Build:** Run `make` to compile the C binary, or `sudo make install` to test global installation on Debian/Ubuntu targets.
-- **Arch Linux Workflow:** For full integration testing (including `.desktop` generation, pacman hooks, and dependencies), use `makepkg -sri`.
-- **Testing the Binary:** Once built, test manual switching via `sudo ./x3d-toggle [cache|frequency|auto|get]`. Note that without compatible AMD 3D V-Cache hardware, the sysfs node will not be present.
+## Agent Tool Use & File Manipulation
+- **File Editing Strictness:** Do NOT use chained bash commands (`cat | tail > file`), complex redirection sequences, or blind shell text splicing to try and update files (especially large documents like `CHANGELOG.md`). This leads to repetitive file corruption over long development sessions.
+- **Native Context Tools:** Always default to using reliable native editing tools (`replace_string_in_file`) for surgical edits.
+- **Direct Overwrites:** If making massive changes or if native editing tools fail, do not overcomplicate text manipulation. Use a single, clean overwrite (e.g. providing the full target state or using a clean `cat << 'EOF' > file` terminal heredoc) rather than risky partial CLI patching.
 
-## Coding Conventions
+## Developer Workflows & Build Commands
+ ```bash
+ ```
 - **C Code (`x3d-toggle.c`):** Use minimal standard libraries (`stdio.h`, `glob.h`, `unistd.h`). Avoid introducing heavyweight dependencies (like glib) to keep latency near zero. Optimize file reads when parsing `/proc/stat`.
-- **Bash Scripts (`x3d-daemon`, `PKGBUILD`):** Maintain bash script safety. Use `shellcheck` directives for ignores where necessary (e.g., `# shellcheck disable=SC...`). Check for required binaries existing (e.g., `command -v notify-send`) before execution to gracefully degrade features.
 - **GUI:** The GUI is implemented via `kdialog` (`x3d-toggle-gui`). Keep dialogs simple and native to KDE/Plasma conventions, but functional in other desktop environments.
 
 ## Development & Test Environment

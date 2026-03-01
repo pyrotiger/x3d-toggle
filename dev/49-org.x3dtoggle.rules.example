@@ -1,0 +1,10 @@
+// NOTE: This file is for developer convenience only. Do NOT ship a passwordless
+// .rules file in production packages. Remove or replace this file when creating
+// distribution packages. Prefer PolicyKit prompts in production.
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.x3dtoggle.apply" &&
+        subject.user == "YOURUSERNAME") {
+        return polkit.Result.YES;
+    }
+});

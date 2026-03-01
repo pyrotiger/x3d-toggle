@@ -45,6 +45,10 @@ install: $(TARGET)
 	install -d $(SYSTEMDDIR)
 	install -m 644 x3d-auto.service $(SYSTEMDDIR)/x3d-auto.service
 
+	# Install manpage (optional; packagers may choose to compress/update)
+	install -d $(DESTDIR)$(PREFIX)/share/man/man1
+	install -m 644 man/x3d-toggle.1 $(DESTDIR)$(PREFIX)/share/man/man1/x3d-toggle.1
+
 	install -d $(LICENSESDIR)
 	install -m 644 LICENSE $(LICENSESDIR)/LICENSE
 	

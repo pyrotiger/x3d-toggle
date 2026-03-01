@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up build deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential pkg-config
+
+      - name: Build
+        run: |
+          make clean
+          make
+
+      - name: Smoke check
+        run: |
+          # Verify the binary exists and is executable
+          if [ -x ./x3d-toggle ]; then
+            echo "Build produced x3d-toggle (size: $(stat -c%s ./x3d-toggle) bytes)"
+            ./x3d-toggle --help || true
+          else
+            echo "x3d-toggle not produced"; exit 1
+          fi

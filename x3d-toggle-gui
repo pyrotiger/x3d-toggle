@@ -1,89 +1,301 @@
 #!/usr/bin/env bash
-#X3D-Toggle v1.0.4 - x3d-toggle-gui
-#Copyright (C) 2026 Pyrotiger
+# x3d-toggle-gui (refactored)
+# Lightweight GUI wrapper using kdialog; keeps logic simple and linear.
 
-notify_user() {
-    if command -v notify-send &> /dev/null; then
-        notify-send -a "X3D Toggle" "$@" 2>/dev/null
-    else
-        echo "[Notification] $*" >> "${HOME}/.x3d-toggle.log" 2>/dev/null
-    fi
-}
+set -euo pipefail
+
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$THIS_DIR"
+LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/x3d-toggle/logs"
+mkdir -p "$LOG_DIR"
 
 SERVICE_NAME="x3d-auto"
 
-if ! command -v kdialog &> /dev/null; then
-    echo "Error: kdialog is required but not installed." >&2
-    notify_user "X3D Toggle Error" "kdialog dependency missing."
-    exit 1
+# Locate the privileged helper
+if [ -x "/usr/bin/x3d-toggle" ]; then
+        TARGET_BIN="/usr/bin/x3d-toggle"
+elif [ -x "$THIS_DIR/x3d-toggle" ]; then
+        TARGET_BIN="$THIS_DIR/x3d-toggle"
+else
+        TARGET_BIN="x3d-toggle"
 fi
 
-if ! x3d-toggle get &>/dev/null; then
-    kdialog --error "AMD X3D vCache interface not found. Check UEFI/Kernel settings or ensure you have a compatible X3D CPU."
-    exit 1
+if ! command -v kdialog >/dev/null 2>&1; then
+        kdialog --error "kdialog is required for this GUI. Please install it." || true
+        exit 1
 fi
 
-CURRENT_MODE=$(x3d-toggle get 2>/dev/null)
-if [ -z "$CURRENT_MODE" ]; then
-    CURRENT_MODE="unknown"
+if ! "$TARGET_BIN" get >/dev/null 2>&1; then
+        kdialog --error "AMD X3D vCache interface not found. Check kernel/UEFI or ensure compatible CPU." || true
+        exit 1
 fi
 
-CACHE_SELECTED="off"
-FREQ_SELECTED="off"
-AUTO_SELECTED="off"
+# Gather status
+CURRENT_MODE="$($TARGET_BIN get 2>/dev/null || echo unknown)"
+CURRENT_MODE=${CURRENT_MODE:-unknown}
 
-if [[ "$CURRENT_MODE" == "cache" ]]; then
-    CACHE_SELECTED="on"
-elif [[ "$CURRENT_MODE" == "frequency" ]]; then
-    FREQ_SELECTED="on"
-elif [[ "$CURRENT_MODE" == "auto" ]]; then
-    AUTO_SELECTED="on"
-fi
+case "$CURRENT_MODE" in
+    cache) FRIENDLY_MODE="Rabbit" ;;
+    frequency) FRIENDLY_MODE="Cheetah" ;;
+    auto) FRIENDLY_MODE="Elk" ;;
+    *) FRIENDLY_MODE="$CURRENT_MODE" ;;
+esac
 
+DAEMON_STATUS="STOPPED"
 if systemctl --user is-active --quiet "$SERVICE_NAME"; then
     DAEMON_STATUS="RUNNING"
-else
-    DAEMON_STATUS="STOPPED"
 fi
 
-RAW_CHOICE=$(kdialog --title "AMD X3D VCACHE Technology Control" --radiolist \
-    "Hardware: <font color='#3daee9'><b>${CURRENT_MODE^^}</b></font> | Daemon: <font color='#1cdc9a'><b>$DAEMON_STATUS</b></font><br><br>Select Mode:" \
-    "cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" "$CACHE_SELECTED" \
-    "frequency" "Cheetah Mode (LLM/Raw Compute - CCD1)" "$FREQ_SELECTED" \
-    "auto" "Elk Mode (Default Scheduler/Disable Automation)" "$AUTO_SELECTED" \
-    "restart_daemon" "Restart/Enable Automation Daemon" "off")
+# Logging status
+if [ -n "${X3D_TOGGLE_LOG:-}" ]; then
+    LOG_STATUS_RAW="$X3D_TOGGLE_LOG"
+elif [ -r /etc/x3d-toggle.conf ]; then
+    LOG_STATUS_RAW=$(grep -E '^logmode=' /etc/x3d-toggle.conf 2>/dev/null | tail -n1 | cut -d'=' -f2- || true)
+    LOG_STATUS_RAW=${LOG_STATUS_RAW:-none}
+else
+    LOG_STATUS_RAW=none
+fi
+
+case "$LOG_STATUS_RAW" in
+    none) FRIENDLY_LOG=Off ;;
+    file) FRIENDLY_LOG=File ;;
+    stdout) FRIENDLY_LOG=Stdout ;;
+    *) FRIENDLY_LOG=Unknown ;;
+esac
+
+# Developer mode visibility (env override or config)
+SHOW_DEV=false
+if [ -n "${X3D_DEV_MODE:-}" ]; then
+    case "${X3D_DEV_MODE,,}" in 1|yes|true) SHOW_DEV=true ;; esac
+elif [ -r /etc/x3d-toggle.conf ]; then
+    DEV_VAL=$(grep -E '^DEVELOPER_MODE=' /etc/x3d-toggle.conf 2>/dev/null | tail -n1 | cut -d'=' -f2-)
+    case "${DEV_VAL,,}" in 1|yes|true) SHOW_DEV=true ;; esac
+fi
+
+# Build kdialog arguments
+ARGS=(--title "AMD 3D V-Cache Performance Optimizer Control" --radiolist "Hardware: <font color='#3daee9'><b>${FRIENDLY_MODE}</b></font> | Daemon: <font color='#1cdc9a'><b>${DAEMON_STATUS}</b></font> | Logging: <font color='#ffcc66'><b>${FRIENDLY_LOG}</b></font><br><br>Select Mode:")
+
+selected_cache="off"; selected_freq="off"; selected_auto="off"
+case "$CURRENT_MODE" in
+    cache) selected_cache=on ;;
+    frequency) selected_freq=on ;;
+    auto) selected_auto=on ;;
+esac
+
+ARGS+=("cache" "Rabbit Mode (Gaming/Low Latency - CCD0)" "$selected_cache")
+ARGS+=("frequency" "Cheetah Mode (LLM/Raw Compute - CCD1)" "$selected_freq")
+ARGS+=("auto" "Elk Mode (Default Scheduler/Disable Automation)" "$selected_auto")
+ARGS+=("restart_daemon" "Restart/Enable Automation Daemon" "off")
+ARGS+=("configure_daemon" "Configure Daemon" "off")
+if [ "$SHOW_DEV" = true ]; then
+    ARGS+=("developer_tools" "Dev Mode - Use at own risk" "off")
+fi
+
+# Log invocation
+echo "[GUI] $(date --iso-8601=seconds) invoked" >> "$LOG_DIR/x3d-toggle-gui.log" 2>/dev/null || true
+
+RAW_CHOICE=$(kdialog "${ARGS[@]}") || true
 
 [ -z "$RAW_CHOICE" ] && exit 0
 
 case "$RAW_CHOICE" in
-    "cache"|"frequency"|"auto")
+    cache|frequency|auto)
         MODE="$RAW_CHOICE"
         if systemctl --user is-active --quiet "$SERVICE_NAME"; then
             systemctl --user stop "$SERVICE_NAME"
-            notify_user "X3D Toggle" "Manual $MODE override engaged. Automation Daemon paused."
+            if command -v notify-send >/dev/null 2>&1; then
+                notify-send -a "X3D Toggle" "Manual $MODE override engaged. Automation Daemon paused."
+            else
+                kdialog --msgbox "Manual $MODE override engaged. Automation Daemon paused."
+            fi
         fi
         ;;
-    "restart_daemon")
+    restart_daemon)
         systemctl --user enable --now "$SERVICE_NAME"
-        notify_user "X3D Toggle" "Automation Daemon restarted and enabled."
+        if command -v notify-send >/dev/null 2>&1; then
+            notify-send -a "X3D Toggle" "Automation Daemon restarted and enabled."
+        else
+            kdialog --msgbox "Automation Daemon restarted and enabled."
+        fi
         exit 0
+        ;;
+    developer_tools)
+        # Delegate to dev helper (sandboxed by default)
+        DEV_HELPER="$REPO_ROOT/dev/dev-helper.sh"
+        if [ ! -x "$DEV_HELPER" ]; then
+            # Not running from source tree, offer to download dev suite
+            DEV_LOCAL_SHARE="${XDG_DATA_HOME:-$HOME/.local/share}/x3d-toggle-dev"
+            DEV_HELPER="$DEV_LOCAL_SHARE/dev/dev-helper.sh"
+            
+            if [ ! -x "$DEV_HELPER" ]; then
+                if kdialog --yesno "Developer tools are not installed.\n\nWould you like to download the full dev suite tracking the latest main branch via git now? (Installs to: $DEV_LOCAL_SHARE)"; then
+                    if ! command -v git >/dev/null 2>&1; then
+                        kdialog --error "Git is required to download the dev tools. Please install git."
+                        exit 1
+                    fi
+                    
+                    kdialog --msgbox "Downloading Developer Suite... Click OK to begin."
+                    rm -rf "$DEV_LOCAL_SHARE"
+                    if git clone "https://github.com/pyrotiger/x3d-toggle.git" "$DEV_LOCAL_SHARE"; then
+                        kdialog --msgbox "Developer Suite downloaded successfully."
+                    else
+                        kdialog --error "Failed to download the repository."
+                        exec "$0"
+                    fi
+                else
+                    exec "$0"
+                fi
+            fi
+            # Use the newly cloned path as the dev root
+            REPO_ROOT="$DEV_LOCAL_SHARE"
+        fi
+        if ! kdialog --yesno "Developer Mode exposes installer and test helpers. These may modify your system if you choose 'unsafe' actions. Proceed?"; then
+            exec "$0"
+        fi
+        while true; do
+            DEV_CHOICE=$(kdialog --title "X3D Toggle — Dev Mode" --radiolist "Developer actions (sandboxed by default):" \
+                "install-sandbox" "Install dev binary+policy (sandbox)" "off" \
+                "remove-sandbox" "Remove sandbox and optionally purge logs" "off" \
+                "sep1" " ---------------------------------------- " "off" \
+                "test-sandbox" "Run sandboxed test" "off" \
+                "stress-test" "Run CPU spike stress test" "off" \
+                "sep2" " ---------------------------------------- " "off" \
+                "install-unsafe" "Install to system paths (UNSAFE)" "off" \
+                "remove-unsafe" "Remove system installs (UNSAFE)" "off" \
+                "sep3" " ---------------------------------------- " "off" \
+                "open-dev-readme" "Show developer README" "off" \
+                "exit-dev" "Exit Developer Mode" "off")
+            if [ -z "$DEV_CHOICE" ] || [ "$DEV_CHOICE" = "exit-dev" ]; then
+                break
+            fi
+            
+            if [[ "$DEV_CHOICE" == sep* ]]; then
+                continue
+            fi
+            
+            if [ "$DEV_CHOICE" = "stress-test" ]; then
+                STRESS_TIME=$(kdialog --inputbox "Enter length of stress test in seconds (1-300):" "10")
+                if [ -n "$STRESS_TIME" ]; then
+                    if [[ "$STRESS_TIME" =~ ^[0-9]+$ ]] && [ "$STRESS_TIME" -ge 1 ] && [ "$STRESS_TIME" -le 300 ]; then
+                        kdialog --msgbox "Starting $STRESS_TIME second CPU stress test. The system may become unresponsive."
+                        # Simple bash-based CPU spinner across multiple background jobs
+                        SPIN_PIDS=()
+                        for _ in $(seq 1 "$(nproc)"); do
+                            (while true; do :; done) &
+                            SPIN_PIDS+=("$!")
+                        done
+                        sleep "$STRESS_TIME"
+                        for pid in "${SPIN_PIDS[@]}"; do
+                            kill -9 "$pid" 2>/dev/null || true
+                        done
+                        kdialog --msgbox "CPU stress test complete."
+                    else
+                        kdialog --error "Invalid time specified. Must be an integer between 1 and 300."
+                    fi
+                fi
+                continue
+            fi
+            
+            OUT_LOG="$LOG_DIR/dev-gui-$(date +%s).log"
+            case "$DEV_CHOICE" in
+                install-sandbox) "$DEV_HELPER" install-bin >"$OUT_LOG" 2>&1 || true ;;
+                test-sandbox) "$DEV_HELPER" test >"$OUT_LOG" 2>&1 || true ;;
+                remove-sandbox) "$DEV_HELPER" remove-all --purge >"$OUT_LOG" 2>&1 || true ;;
+                install-unsafe)
+                    if kdialog --yesno "Unsafe install will modify system paths and may require sudo. Continue?"; then
+                        "$DEV_HELPER" --unsafe install-all >"$OUT_LOG" 2>&1 || true
+                    fi
+                    ;;
+                remove-unsafe)
+                    if kdialog --yesno "This will remove system-installed dev artifacts. Continue?"; then
+                        "$DEV_HELPER" --unsafe remove-all --purge >"$OUT_LOG" 2>&1 || true
+                    fi
+                    ;;
+                open-dev-readme) kdialog --textbox "$REPO_ROOT/dev/README-dev.md"; continue ;;
+            esac
+            if [ -s "$OUT_LOG" ]; then
+                kdialog --msgbox "Action completed. See output log: $OUT_LOG"
+                kdialog --textbox "$OUT_LOG"
+            else
+                kdialog --msgbox "Action completed (no output)."
+            fi
+        done
+        # When exiting developer loop, restart the script to fall back to main menu
+        exec "$0"
+        ;;
+    configure_daemon)
+        # Embedded configuration dialog (kept as before)
+        CONFIG_PATH="${X3D_CONFIG_FILE:-/etc/x3d-toggle.conf}"
+        find_config() {
+            if [ -f "$CONFIG_PATH" ]; then
+                grep -E "^$1=" "$CONFIG_PATH" | tail -n1 | cut -d'=' -f2-
+            fi
+        }
+        POLL=$(find_config POLL_INTERVAL)
+        LOAD=$(find_config COMPUTE_LOAD_THRESHOLD)
+        GAME=$(find_config GAME_DETECTION_MODE)
+        POLL=${POLL:-3}
+        LOAD=${LOAD:-50}
+        GAME=${GAME:-2}
+        validate_numeric() {
+            case "$1" in
+                ''|*[!0-9]*) return 1;;
+            esac
+            return 0
+        }
+        NEW_POLL=$(kdialog --inputbox "Poll interval (seconds) - 1..10" "$POLL") || exec "$0"
+        if ! validate_numeric "$NEW_POLL" || [ "$NEW_POLL" -lt 1 ] || [ "$NEW_POLL" -gt 10 ]; then kdialog --error "Invalid polling interval."; exec "$0"; fi
+        NEW_LOAD=$(kdialog --inputbox "Compute load threshold (percent) - 10..90" "$LOAD") || exec "$0"
+        if ! validate_numeric "$NEW_LOAD" || [ "$NEW_LOAD" -lt 10 ] || [ "$NEW_LOAD" -gt 90 ]; then kdialog --error "Invalid compute threshold."; exec "$0"; fi
+        GAME_SEL=$(kdialog --combobox "Game detection mode" "Strict (1)" "Loose (2)") || exec "$0"
+        case "$GAME_SEL" in
+            *Strict*) GAME_VAL=1 ;;
+            *) GAME_VAL=2 ;;
+        esac
+        LOG_SEL=$(kdialog --combobox "Logging mode" "None (default)" "File (for system logging)" "Stdout (developer/debug)") || exec "$0"
+        [ -z "$LOG_SEL" ] && LOG_SEL="None (default)"
+        SUMMARY="Poll interval: ${NEW_POLL}s\nCompute threshold: ${NEW_LOAD}%\nGame detection mode: ${GAME_VAL}\nLogging mode: ${LOG_SEL}\n\nApply changes?"
+        if ! kdialog --yesno "$SUMMARY"; then exec "$0"; fi
+        if [ -x "$TARGET_BIN" ]; then
+            pkexec "$TARGET_BIN" set polling "$NEW_POLL" "$CONFIG_PATH"; RET1=$?
+            pkexec "$TARGET_BIN" set compute "$NEW_LOAD" "$CONFIG_PATH"; RET2=$?
+            pkexec "$TARGET_BIN" set game "$GAME_VAL" "$CONFIG_PATH"; RET3=$?
+        else
+            kdialog --error "x3d-toggle binary not found at $TARGET_BIN"; exit 1
+        fi
+        if [ $RET1 -ne 0 ] || [ $RET2 -ne 0 ] || [ $RET3 -ne 0 ]; then kdialog --error "Failed to write configuration."; exec "$0"; fi
+        case "$LOG_SEL" in *None*) pkexec "$TARGET_BIN" log-off "$CONFIG_PATH" >/dev/null 2>&1 || true ;; *File*) pkexec "$TARGET_BIN" log-file "$CONFIG_PATH" >/dev/null 2>&1 || true ;; *Stdout*) pkexec "$TARGET_BIN" log-on "$CONFIG_PATH" >/dev/null 2>&1 || true ;; esac
+        systemctl --user restart x3d-auto.service 2>/dev/null || true
+        if [[ "$LOG_SEL" == *Stdout* ]]; then
+            [ -w "$LOG_DIR" ] || LOG_DIR="$HOME/.local/share/x3d-toggle/logs"
+            kdialog --msgbox "Configuration saved and daemon restarted.\n\nStdout logging enabled (opt-in).\nLogs: $LOG_DIR\n\nTo enable for direct runs, export X3D_TOGGLE_LOG=stdout.";
+        else
+            kdialog --msgbox "Configuration saved and daemon restarted.";
+        fi
+        exec "$0"
+        ;;
+    *)
+        kdialog --error "Unknown command: $RAW_CHOICE" || true
+        exit 1
         ;;
 esac
 
-pkexec /usr/bin/x3d-toggle "$MODE"
-EXIT_STATUS=$?
-
-if [ $EXIT_STATUS -eq 0 ]; then
-    ICON_PATH="/usr/share/icons/hicolor/256x256/apps/x3d-toggle.png"
-    DISPLAY_ICON=$([ -f "$ICON_PATH" ] && echo "$ICON_PATH" || echo "cpu")
-
-    if command -v notify-send &> /dev/null; then
-        notify-send -a "X3D Toggle" -i "$DISPLAY_ICON" "AMD X3D VCACHE Technology: ${MODE^^}" "Hardware Mode Engaged."
+# If we set a manual mode above, call the privileged helper
+if [ -n "${MODE-}" ]; then
+    pkexec "$TARGET_BIN" "$MODE"
+    EXIT_STATUS=$?
+    if [ $EXIT_STATUS -eq 0 ]; then
+        ICON_PATH="/usr/share/icons/hicolor/256x256/apps/x3d-toggle.png"
+        DISPLAY_ICON=$([ -f "$ICON_PATH" ] && echo "$ICON_PATH" || echo "cpu")
+        if command -v notify-send >/dev/null 2>&1; then
+            notify-send -a "X3D Toggle" -i "$DISPLAY_ICON" "AMD 3D V-Cache Performance Optimizer: ${MODE^^}" "Hardware Mode Engaged."
+        else
+            kdialog --information "Mode switched to: ${MODE^^}" --title "AMD 3D V-Cache Performance Optimizer"
+        fi
+    elif [ $EXIT_STATUS -eq 126 ] || [ $EXIT_STATUS -eq 127 ]; then
+        exit 0
     else
-        kdialog --information "Mode switched to: ${MODE^^}" --title "AMD X3D VCACHE Technology"
+        kdialog --error "<font color='#ff6d00'>Hardware write failed. Check permissions or kernel support.</font>"
     fi
-elif [ $EXIT_STATUS -eq 126 ] || [ $EXIT_STATUS -eq 127 ]; then
-     exit 0
-else
-    kdialog --error "<font color='#ff6d00'>Hardware write failed. Check permissions or kernel support.</font>"
 fi
+

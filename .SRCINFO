@@ -1,0 +1,25 @@
+pkgbase = x3d-toggle
+	pkgdesc = AMD 3D V-Cache Performance Optimizer Toggle Control - Community Edition
+	pkgver = 1.2.0
+	pkgrel = 1
+	url = https://github.com/pyrotiger/x3d-toggle
+	install = x3d-toggle.install
+	arch = x86_64
+	license = GPL-3.0-only
+	depends = kdialog
+	depends = polkit
+	depends = libnotify
+	depends = procps-ng
+	optdepends = gamemode: For GameMode integration
+	optdepends = steam: For Steam game detection
+	optdepends = wine: For Windows game compatibility
+	optdepends = proton: For Steam Play compatibility
+	provides = x3d-toggle
+	conflicts = x3d-toggle
+	conflicts = x3d-toggle-git
+	options = !debug
+	backup = etc/x3d-toggle.conf
+	source = x3d-toggle-1.2.0.tar.gz::https://github.com/pyrotiger/x3d-toggle/archive/refs/tags/v1.2.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = x3d-toggle

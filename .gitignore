@@ -8,4 +8,10 @@ x3d-toggle/
 .vscode/
 x3d-toggle
 *.gz
-x3d-toggle.c.bak
+*.bak
+
+
+*.code-workspace
+.idea/
+logs/*.log
+dev/*.local.rules
