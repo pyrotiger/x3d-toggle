@@ -28,6 +28,10 @@ Print the current effective mode (reads the sysfs node).
 Return success (exit 0) when the system compute load is at-or-above the
 specified threshold percent (integer 0..100). Defaults to 50.
 .TP
+.B stress [seconds]
+Run a multi-threaded synthetic CPU workload simulating a 100% total core load. 
+Used to test polling logic and threshold triggers. Range: 1-300 seconds.
+.TP
 .B set \fIkey value [config_path]\fR
 Atomically write a configuration key/value pair to the config file. Supported
 keys: \fBpolling\fR (seconds), \fBcompute\fR (percent), \fBgame\fR (mode),
@@ -94,11 +98,17 @@ insufficient privileges return non-zero.
 .fi
 .RE
 .TP
-.B Developer: force stdout while elevated
+.B Test automated switch detection logic
 .RS
 .nf
-  # allow elevated process to print to stdout for debugging
-  X3D_TOGGLE_ALLOW_STDOUT=1 pkexec x3d-toggle cache
+  x3d-toggle stress 45
+.fi
+.RE
+.TP
+.B Developer: force GUI tools activation
+.RS
+.nf
+  X3D_DEV_MODE=1 x3d-toggle-gui
 .fi
 .RE
 .SH FILES

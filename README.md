@@ -94,20 +94,13 @@ sudo x3d-toggle frequency             # Cheetah Mode (Compute) 🐆
 sudo x3d-toggle auto                  # Elk Mode (Driver Default) 🦌
 x3d-toggle get                        # Check current active hardware mode 🔎
 x3d-toggle check-load <threshold>     # Performant C check against load % 🧠
+x3d-toggle stress <seconds>           # Run synthetic multi-core CPU spiker 🧮
 ```
 
 ### ⚙️  Customizations  ⚙️
 *  To change the notification icon, replace the existing asset:
    *  Path: /usr/share/x3d-toggle/ryzen.png
    *  Requirement: Image must be named ryzen.png and in png format
-
-### 🧰  Developer Tools & Sandbox  🧰
-Developers or enthusiasts who want to modify the source can run the dynamic testing suite directly from the source directory. This leverages `bwrap` (Bubblewrap) to create an isolated, read-only root system, preventing test logic from overwriting your physical OS directories:
-```bash
-./dev/dev-helper.sh install-all
-./dev/dev-helper.sh test
-```
-The standard GUI also detects missing components and provides prompts to pull standard developer suites automatically when the wizard's easter egg is found.
 
 ### 🚮  Uninstallation  🚮
 To uninstall all binaries and assets, run the following:

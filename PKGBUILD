@@ -19,7 +19,7 @@ options=('!debug')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}" "${_pkgname}-git")
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('65f9418a93d7265a1acd7999bca62bdcc54ffaa7175e6ea2e641aa1ef4035f2f')
 backup=('etc/x3d-toggle.conf')
 install='x3d-toggle.install'
 

@@ -20,6 +20,6 @@ pkgbase = x3d-toggle
 	options = !debug
 	backup = etc/x3d-toggle.conf
 	source = x3d-toggle-1.2.0.tar.gz::https://github.com/pyrotiger/x3d-toggle/archive/refs/tags/v1.2.0.tar.gz
-	sha256sums = SKIP
+	sha256sums = 65f9418a93d7265a1acd7999bca62bdcc54ffaa7175e6ea2e641aa1ef4035f2f
 
 pkgname = x3d-toggle
