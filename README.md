@@ -101,9 +101,6 @@ x3d-toggle check-load <threshold>     # Performant C check against load % 🧠
    *  Path: /usr/share/x3d-toggle/ryzen.png
    *  Requirement: Image must be named ryzen.png and in png format
 
-### 🧰  Advanced Configuration  🧰
-Advanced configuration options and developer tools are hidden by default to prevent accidental system modifications. Setting the `X3D_DEV_MODE=1` environment variable when launching the GUI will expose testing, debugging, and advanced diagnostic features.
-
 ### 🚮  Uninstallation  🚮
 To uninstall all binaries and assets, run the following:
 
