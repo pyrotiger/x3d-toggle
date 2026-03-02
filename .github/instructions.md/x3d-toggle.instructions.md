@@ -10,3 +10,8 @@
 - **Daemon:** `x3d-daemon` (Bash-based heuristic evaluator).
 - **Service:** `x3d-auto.service` (Systemd user-space).
 - **UI:** `kdialog` for native KDE/Plasma interaction.
+
+## eBPF & Development
+- **Ground Truth:** Never assume kernel offsets. Always prioritize the locally generated `vmlinux.h`.
+- **Latency Target:** Zero-overhead. Use `BPF_MAP_TYPE_RINGBUF` for event streaming.
+- **Dependencies:** Keep binaries lean. Avoid heavyweight libraries like `glib`.
