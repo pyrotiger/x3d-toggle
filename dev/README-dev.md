@@ -1,6 +1,14 @@
 > **⚠️  WARNING: USE AT YOUR OWN RISK, READ FIRST!  ⚠️**
 > This directory contains development logic, privilege escalation tests (PolicyKit), and sandboxed execution environments intended strictly for testing the `x3d-toggle` utility. Misuse of these scripts natively can alter CPU logic on your host hardware. Proceed with caution...
 
+### 🧰  Developer Tools & Sandbox  🧰
+Developers or enthusiasts who want to modify the source can run the dynamic testing suite directly from the source directory. This leverages `bwrap` (Bubblewrap) to create an isolated, read-only root system, preventing test logic from overwriting your physical OS directories:
+```bash
+./dev/dev-helper.sh install-all
+./dev/dev-helper.sh test
+```
+The standard GUI also detects missing components and provides prompts to pull standard developer suites automatically when the wizard's easter egg is found.
+
 Development PKExec test
 =======================
 
