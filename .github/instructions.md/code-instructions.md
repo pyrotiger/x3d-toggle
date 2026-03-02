@@ -11,5 +11,6 @@
 - **Validation:** C binaries must enforce `geteuid() == 0` securely.
 
 ## Agent Behavior
+- **Tool Selection:** STRICTLY rely on VS Code native AI tools (`read_file` and `replace_string_in_file`) for file investigation and modification. The host terminal utilizes aliased pagers (`bat`, `less`) which will corrupt or swallow standard CLI pipelines (like `cat`, `sed`, `git diff`) and cause hallucinated states. DO NOT edit files via terminal scripts.
 - **Logic:** Use top-down deductive reasoning (Sherlock).
-- **Updates:** Perform full-file overwrites or clean heredocs; avoid partial CLI patching.
+- **Updates:** Perform full-file overwrites or rely on native API editing tools only.
