@@ -1,35 +1,5 @@
-# Copilot Instructions for x3d-toggle
+For extreme token efficiency and minimal API latency, standard markdown headers have been pruned from project context constraints. Please parse the following flattened JSON block for all workspace, architectural, and security heuristics:
 
-## Architecture & Big Picture
-- **Service Boundaries:** The project is split into a high-performance C backend (`x3d-toggle.c`) and a Bash-based heuristic daemon (`x3d-daemon`). 
-- **The C Binary:** Acts as a secure, fast proxy to write to the kernel sysfs node (`/sys/devices/platform/AMDI*/amd_x3d_mode`). It also handles performant CPU utilization polling (`x3d-toggle check-load`).
-- **The Daemon:** Runs as a systemd user service (`x3d-auto.service`). It evaluates gaming intent (via Steam, gamemode, desktop files) or compute load, then invokes the C binary via `pkexec`.
-- **Terminology:** 
-  - 🐰 **Rabbit Mode:** `cache` (prioritizes 3D V-Cache for gaming).
-  - 🐆 **Cheetah Mode:** `frequency` (prioritizes high clocks for compute tasks).
-  - 🦌 **Elk Mode:** `auto` (returns scheduling to the default kernel driver).
-
-## Security & Permissions
-- Never alter the permissions strategy. Hardware writes require root privileges. 
-- The project **strictly uses PolicyKit** (`org.x3dtoggle.policy`) for privilege elevation. Do not implement `setuid` bits or raw `sudo` commands inside the user-facing GUI/daemon. Always use `pkexec /usr/bin/x3d-toggle` when invoking from user-space scripts.
-- The C binary enforces safety by checking `geteuid() == 0` securely.
-
-## Agent Tool Use & File Manipulation
-- **File Editing Strictness:** Do NOT use chained bash commands (`cat | tail > file`), complex redirection sequences, or blind shell text splicing to try and update files (especially large documents like `CHANGELOG.md`). This leads to repetitive file corruption over long development sessions.
-- **Native Context Tools:** Always default to using reliable native editing tools (`replace_string_in_file`) for surgical edits.
-- **Direct Overwrites:** If making massive changes or if native editing tools fail, do not overcomplicate text manipulation. Use a single, clean overwrite (e.g. providing the full target state or using a clean `cat << 'EOF' > file` terminal heredoc) rather than risky partial CLI patching.
-
-## Developer Workflows & Build Commands
- ```bash
- ```
-- **C Code (`x3d-toggle.c`):** Use minimal standard libraries (`stdio.h`, `glob.h`, `unistd.h`). Avoid introducing heavyweight dependencies (like glib) to keep latency near zero. Optimize file reads when parsing `/proc/stat`.
-- **GUI:** The GUI is implemented via `kdialog` (`x3d-toggle-gui`). Keep dialogs simple and native to KDE/Plasma conventions, but functional in other desktop environments.
-
-## Development & Test Environment
-Always contextualize suggestions, hardware-specific paths, and troubleshooting based on the user's primary workstation:
-- **OS:** Garuda Linux x86_64 (`pacman` package manager)
-- **Kernel:** Linux 7.0.0-rc1-1-cachyos-rc (custom/optimized kernel)
-- **CPU:** AMD Ryzen 9 9950X3D (32 threads) @ 5.80 GHz (Target Hardware)
-- **GPU:** AMD Radeon RX 7900 XTX [Discrete] (Mesa / radv)
-- **Display Server / DE:** Wayland (KWin) within KDE Plasma 6.6.1
-- **Shell / Terminal:** fish 4.5.0 / Konsole 25.12.2
+```json
+{"sys":"x3d-toggle context","env":"CPU: AMD Ryzen 9 9950X3D (Targeting X3D-specific cache/frequency CCDs). | GPU: AMD Radeon RX 7900 XTX (Discrete/Mesa). | External Sensors: T_Sensor1 (PSU exhaust), T_Sensor2 (GPU/PCIe), T_Sensor3 (DIMM sandwich). | Distro: Garuda Linux (Arch-based). | Kernel: Linux 7.0.0-rc1-1-cachyos-rc (BTF enabled). | Display: Wayland / KDE Plasma 6.6.1. | Shell: zsh (Note: `cat` is aliased to `bat`). | Foundation: Critical Data: Trends: #0078ff","code":"Ground Truth: Never assume kernel offsets. Always prioritize the locally generated `vmlinux.h`. | Latency Target: Zero-overhead. Use `BPF_MAP_TYPE_RINGBUF` for event streaming. | Dependencies: Keep C binaries lean. Avoid heavyweight libraries like `glib`. | Elevation: Do not use `setuid` or raw `sudo` within scripts. | PolicyKit: Strictly utilize `pkexec` for all sysfs writes via `org.x3dtoggle.policy`. | Validation: C binaries must enforce `geteuid() == 0` securely. | Tool Selection: STRICTLY rely on VS Code native AI tools (`read_file` and `replace_string_in_file`) for file investigation and modification. The host terminal utilizes aliased pagers (`bat`, `less`) which will corrupt or swallow standard CLI pipelines (like `cat`, `sed`, `git diff`) and cause hallucinated states. DO NOT edit files via terminal scripts. | Logic: Use top-down deductive reasoning (Sherlock). | Updates: Perform full-file overwrites or rely on native API editing tools only.","app":"Rabbit Mode (cache): Prioritizes 3D V-Cache (Gaming). Writes to `/sys/devices/platform/AMDI*/amd_x3d_mode`. | Cheetah Mode (frequency): Prioritizes high clocks (Compute/LLMs). | Elk Mode (auto): Reverts to default kernel scheduling. | Backend: `x3d-toggle.c` (High-performance sysfs proxy). | Daemon: `x3d-daemon` (Bash-based heuristic evaluator). | Service: `x3d-auto.service` (Systemd user-space). | UI: `kdialog` for native KDE/Plasma interaction.","memory_trigger":"If user says \"update context and archive session\": CREATE .github/instructions.md/vsc-context/<YYYY-MM-DD>.vsc-context.md","memory_format":"Must contain ## Conversation Summary and ## Environment & Development Context. Remind user to export raw JSON.","federal_rules":"Refer to /instructions for indexed instructions that apply to all files in the repository. You, the AI agent, do not have authority to edit this file or any content within /instructions for any reason. You may propose changes in the current chat/session window for me to manually review and apply. DO NOT edit any *-instructions.md files directly. These are reserved for manual human review and contain critical engineering standards and security protocols that must be adhered to. You have contextual memory retention through the local/built-in extension 'Context Memory Retention' made by Pyrotiger, which enables your long-term memory of the repository and all interactions in the workspace. Use this to your advantage to understand and accelerate the workflow efficiently. You can refer to past interactions and the repository context at any time to inform your decisions and actions."}
+```
