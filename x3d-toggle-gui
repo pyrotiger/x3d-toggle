@@ -224,55 +224,81 @@ case "$RAW_CHOICE" in
         exec "$0"
         ;;
     configure_daemon)
-        # Embedded configuration dialog (kept as before)
         CONFIG_PATH="${X3D_CONFIG_FILE:-/etc/x3d-toggle.conf}"
         find_config() {
             if [ -f "$CONFIG_PATH" ]; then
                 grep -E "^$1=" "$CONFIG_PATH" | tail -n1 | cut -d'=' -f2-
             fi
         }
-        POLL=$(find_config POLL_INTERVAL)
-        LOAD=$(find_config COMPUTE_LOAD_THRESHOLD)
-        GAME=$(find_config GAME_DETECTION_MODE)
-        POLL=${POLL:-3}
-        LOAD=${LOAD:-50}
-        GAME=${GAME:-2}
         validate_numeric() {
             case "$1" in
                 ''|*[!0-9]*) return 1;;
             esac
             return 0
         }
-        NEW_POLL=$(kdialog --inputbox "Poll interval (seconds) - 1..10" "$POLL") || exec "$0"
-        if ! validate_numeric "$NEW_POLL" || [ "$NEW_POLL" -lt 1 ] || [ "$NEW_POLL" -gt 10 ]; then kdialog --error "Invalid polling interval."; exec "$0"; fi
-        NEW_LOAD=$(kdialog --inputbox "Compute load threshold (percent) - 10..90" "$LOAD") || exec "$0"
-        if ! validate_numeric "$NEW_LOAD" || [ "$NEW_LOAD" -lt 10 ] || [ "$NEW_LOAD" -gt 90 ]; then kdialog --error "Invalid compute threshold."; exec "$0"; fi
-        GAME_SEL=$(kdialog --combobox "Game detection mode" "Strict (1)" "Loose (2)") || exec "$0"
-        case "$GAME_SEL" in
-            *Strict*) GAME_VAL=1 ;;
-            *) GAME_VAL=2 ;;
-        esac
-        LOG_SEL=$(kdialog --combobox "Logging mode" "None (default)" "File (for system logging)" "Stdout (developer/debug)") || exec "$0"
-        [ -z "$LOG_SEL" ] && LOG_SEL="None (default)"
-        SUMMARY="Poll interval: ${NEW_POLL}s\nCompute threshold: ${NEW_LOAD}%\nGame detection mode: ${GAME_VAL}\nLogging mode: ${LOG_SEL}\n\nApply changes?"
-        if ! kdialog --yesno "$SUMMARY"; then exec "$0"; fi
-        if [ -x "$TARGET_BIN" ]; then
-            pkexec "$TARGET_BIN" set polling "$NEW_POLL" "$CONFIG_PATH"; RET1=$?
-            pkexec "$TARGET_BIN" set compute "$NEW_LOAD" "$CONFIG_PATH"; RET2=$?
-            pkexec "$TARGET_BIN" set game "$GAME_VAL" "$CONFIG_PATH"; RET3=$?
-        else
-            kdialog --error "x3d-toggle binary not found at $TARGET_BIN"; exit 1
-        fi
-        if [ $RET1 -ne 0 ] || [ $RET2 -ne 0 ] || [ $RET3 -ne 0 ]; then kdialog --error "Failed to write configuration."; exec "$0"; fi
-        case "$LOG_SEL" in *None*) pkexec "$TARGET_BIN" log-off "$CONFIG_PATH" >/dev/null 2>&1 || true ;; *File*) pkexec "$TARGET_BIN" log-file "$CONFIG_PATH" >/dev/null 2>&1 || true ;; *Stdout*) pkexec "$TARGET_BIN" log-on "$CONFIG_PATH" >/dev/null 2>&1 || true ;; esac
-        systemctl --user restart x3d-auto.service 2>/dev/null || true
-        if [[ "$LOG_SEL" == *Stdout* ]]; then
-            [ -w "$LOG_DIR" ] || LOG_DIR="$HOME/.local/share/x3d-toggle/logs"
-            kdialog --msgbox "Configuration saved and daemon restarted.\n\nStdout logging enabled (opt-in).\nLogs: $LOG_DIR\n\nTo enable for direct runs, export X3D_TOGGLE_LOG=stdout.";
-        else
-            kdialog --msgbox "Configuration saved and daemon restarted.";
-        fi
-        exec "$0"
+        
+        while true; do
+            POLL=$(find_config POLL_INTERVAL); POLL=${POLL:-3}
+            LOAD=$(find_config COMPUTE_LOAD_THRESHOLD); LOAD=${LOAD:-50}
+            GAME=$(find_config GAME_DETECTION_MODE); GAME=${GAME:-2}
+            
+            # Fetch logging status for display
+            LOG_VAL=$(find_config FILE_LOGGING_ENABLED); LOG_VAL=${LOG_VAL:-0}
+            STDOUT_VAL=$(find_config STDOUT_LOGGING_ENABLED); STDOUT_VAL=${STDOUT_VAL:-0}
+            if [ "$STDOUT_VAL" = "1" ]; then 
+                CURRENT_LOG="Stdout"
+            elif [ "$LOG_VAL" = "1" ]; then 
+                CURRENT_LOG="File"
+            else 
+                CURRENT_LOG="None"
+            fi
+
+            if ! command -v kdialog >/dev/null 2>&1; then
+                exit 1
+            fi
+            
+            CONFIG_CHOICE=$(kdialog --geometry "600x400" --title "Configure Daemon" --menu "Select a setting to modify:" \
+                "poll" "Poll Interval (Current: ${POLL}s)" \
+                "load" "Compute Threshold (Current: ${LOAD}%)" \
+                "game" "Game Detection Mode (Current: ${GAME})" \
+                "log" "Logging Mode (Current: ${CURRENT_LOG})" \
+                "back" "Back to Main Menu") || exec "$0"
+            
+            case "$CONFIG_CHOICE" in
+                poll)
+                    NEW_POLL=$(kdialog --inputbox "Poll interval (seconds) - 1..10" "$POLL") || continue
+                    if ! validate_numeric "$NEW_POLL" || [ "$NEW_POLL" -lt 1 ] || [ "$NEW_POLL" -gt 10 ]; then kdialog --error "Invalid polling interval."; continue; fi
+                    if [ -x "$TARGET_BIN" ]; then pkexec "$TARGET_BIN" set polling "$NEW_POLL" "$CONFIG_PATH"; else kdialog --error "x3d-toggle binary not found."; fi
+                    ;;
+                load)
+                    NEW_LOAD=$(kdialog --inputbox "Compute load threshold (percent) - 10..90" "$LOAD") || continue
+                    if ! validate_numeric "$NEW_LOAD" || [ "$NEW_LOAD" -lt 10 ] || [ "$NEW_LOAD" -gt 90 ]; then kdialog --error "Invalid compute threshold."; continue; fi
+                    if [ -x "$TARGET_BIN" ]; then pkexec "$TARGET_BIN" set compute "$NEW_LOAD" "$CONFIG_PATH"; else kdialog --error "x3d-toggle binary not found."; fi
+                    ;;
+                game)
+                    GAME_SEL=$(kdialog --combobox "Game detection mode" "Strict (1)" "Loose (2)") || continue
+                    case "$GAME_SEL" in *Strict*) GAME_VAL=1 ;; *) GAME_VAL=2 ;; esac
+                    if [ -x "$TARGET_BIN" ]; then pkexec "$TARGET_BIN" set game "$GAME_VAL" "$CONFIG_PATH"; else kdialog --error "x3d-toggle binary not found."; fi
+                    ;;
+                log)
+                    LOG_SEL=$(kdialog --combobox "Logging mode" "None (default)" "File (for system logging)" "Stdout (developer/debug)") || continue
+                    case "$LOG_SEL" in 
+                        *None*) pkexec "$TARGET_BIN" log-off "$CONFIG_PATH" >/dev/null 2>&1 || true ;; 
+                        *File*) pkexec "$TARGET_BIN" log-file "$CONFIG_PATH" >/dev/null 2>&1 || true ;; 
+                        *Stdout*) pkexec "$TARGET_BIN" log-on "$CONFIG_PATH" >/dev/null 2>&1 || true ;; 
+                    esac
+                    if [[ "$LOG_SEL" == *Stdout* ]]; then
+                        [ -w "$LOG_DIR" ] || LOG_DIR="$HOME/.local/share/x3d-toggle/logs"
+                        kdialog --msgbox "Stdout logging enabled (opt-in).\nLogs: $LOG_DIR\n\nTo enable for direct runs, export X3D_TOGGLE_LOG=stdout."
+                    fi
+                    ;;
+                back|*)
+                    exec "$0"
+                    ;;
+            esac
+            systemctl --user restart x3d-auto.service 2>/dev/null || true
+            kdialog --msgbox "Configuration saved and daemon restarted."
+        done
         ;;
     *)
         kdialog --error "Unknown command: $RAW_CHOICE" || true
