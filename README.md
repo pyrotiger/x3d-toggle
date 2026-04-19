@@ -1,4 +1,5 @@
 # x3d-toggle (C Implementation)
+# Note: X3D Toggle is undergoing a major architectural rewrite. v2.0 is currently in development as a pure POSIX C daemon and will be released via [X3D Toggle V2](https://github.com/pyrotiger/x3d-toggle-main)
 ### X3D-Toggle v1.2.0 - README.md
 ### Copyright ©️ 2026 Pyrotiger - License: GPLv3
 
